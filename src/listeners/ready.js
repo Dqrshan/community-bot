@@ -21,7 +21,7 @@ class UserEvent extends Listener {
 		this.container.client.user.setPresence({
 			activities: [
 				{
-					name: 'the Hub',
+					name: 'You',
 					type: ActivityType.Watching
 				}
 			],
