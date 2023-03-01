@@ -3,7 +3,6 @@ const { send } = require('@sapphire/plugin-editable-commands');
 const { Type } = require('@sapphire/type');
 const { codeBlock, isThenable } = require('@sapphire/utilities');
 const { inspect } = require('node:util');
-const { MessageActionRow, MessageButton } = require('discord.js');
 
 class UserCommand extends Command {
 	constructor(context, options) {
@@ -30,30 +29,23 @@ class UserCommand extends Command {
 		const output = success ? codeBlock('js', result) : `**ERROR**: ${codeBlock('bash', result)}`;
 		if (args.getFlags('silent', 's')) return null;
 
-		// const typeFooter = `**Type**: ${codeBlock('typescript', type)}`;
-		const typeButton = new MessageActionRow().addComponents(
-			new MessageButton().setLabel(`Type: ${type}`).setDisabled(true).setStyle('PRIMARY').setCustomId('TYPE')
-		);
+		const typeFooter = `**Type**: ${codeBlock('typescript', type)}`;
 
 		if (output.length > 2000) {
 			return send(message, {
-				content: `Output was too long... sent the result as a file.`,
-				files: [{ attachment: Buffer.from(output), name: 'output.js' }],
-				components: [typeButton]
+				content: `Output was too long... sent the result as a file.\n\n${typeFooter}`,
+				files: [{ attachment: Buffer.from(output), name: 'output.js' }]
 			});
 		}
 
-		return send(message, {
-			content: `${output}`,
-			components: [typeButton]
-		});
+		return send(message, `${output}\n${typeFooter}`);
 	}
 
 	async eval(message, code, flags) {
 		if (flags.async) code = `(async () => {\n${code}\n})();`;
 
 		const msg = message;
-		const client = msg.client;
+		const client = message.client;
 
 		let success = true;
 		let result = null;
@@ -79,7 +71,7 @@ class UserCommand extends Command {
 			});
 		}
 
-		result = result.replaceAll(new RegExp(client.token, 'gi'), '--snip--');
+		result = result.replaceAll(new RegExp(this.container.client.token, 'gi'), '--snip--');
 
 		return { result, success, type };
 	}

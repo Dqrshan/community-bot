@@ -1,5 +1,6 @@
 const { Listener } = require('@sapphire/framework');
 const { blue, gray, green, magenta, magentaBright, white, yellow } = require('colorette');
+const { ActivityType } = require('discord.js');
 
 const dev = process.env.NODE_ENV !== 'production';
 
@@ -16,11 +17,12 @@ class UserEvent extends Listener {
 	run() {
 		this.printBanner();
 		this.printStoreDebugInformation();
+
 		this.container.client.user.setPresence({
 			activities: [
 				{
-					name: '.gg/bangalore',
-					type: 'WATCHING'
+					name: 'the Hub',
+					type: ActivityType.Watching
 				}
 			],
 			status: 'dnd'

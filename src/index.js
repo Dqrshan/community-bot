@@ -2,34 +2,36 @@ require('./lib/setup');
 require('dotenv').config();
 const { LogLevel, SapphireClient } = require('@sapphire/framework');
 const { prefix } = require('./config.json');
+const { GatewayIntentBits, Partials } = require('discord.js');
 
 const client = new SapphireClient({
 	defaultPrefix: prefix,
+	regexPrefix: /^(hey +)?bot[,! ]/i,
 	caseInsensitiveCommands: true,
 	logger: {
 		level: LogLevel.Debug
 	},
 	shards: 'auto',
 	intents: [
-		'GUILDS',
-		'GUILD_MEMBERS',
-		'GUILD_BANS',
-		'GUILD_EMOJIS_AND_STICKERS',
-		'GUILD_VOICE_STATES',
-		'GUILD_MESSAGES',
-		'GUILD_MESSAGE_REACTIONS',
-		'DIRECT_MESSAGES',
-		'DIRECT_MESSAGE_REACTIONS'
+		GatewayIntentBits.DirectMessageReactions,
+		GatewayIntentBits.DirectMessages,
+		GatewayIntentBits.GuildEmojisAndStickers,
+		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.GuildMessageReactions,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildVoiceStates,
+		GatewayIntentBits.MessageContent
 	],
-	partials: ['CHANNEL'],
+	partials: [Partials.Channel],
 	loadMessageCommandListeners: true
 });
 
 const main = async () => {
 	try {
-		client.logger.info('Logging in..');
+		client.logger.info('Logging in');
 		await client.login(process.env.TOKEN);
-		client.logger.info('Logged in!');
+		client.logger.info('logged in');
 	} catch (error) {
 		client.logger.fatal(error);
 		client.destroy();
