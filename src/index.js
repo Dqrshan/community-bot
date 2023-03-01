@@ -3,6 +3,7 @@ require('dotenv').config();
 const { LogLevel, SapphireClient } = require('@sapphire/framework');
 const { prefix } = require('./config.json');
 const { GatewayIntentBits, Partials } = require('discord.js');
+const Dokdo = require('dokdo');
 
 const client = new SapphireClient({
 	defaultPrefix: prefix,
@@ -27,11 +28,13 @@ const client = new SapphireClient({
 	loadMessageCommandListeners: true
 });
 
+client.dokdo = new Dokdo(client, { prefix, secrets: [client.token], aliases: ['dok', 'dokdo'] });
+
 const main = async () => {
 	try {
 		client.logger.info('Logging in');
 		await client.login(process.env.TOKEN);
-		client.logger.info('logged in');
+		client.logger.info('Logged in');
 	} catch (error) {
 		client.logger.fatal(error);
 		client.destroy();

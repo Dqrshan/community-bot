@@ -1,5 +1,5 @@
 {
-	"name": "with-javascript",
+	"name": "bangalore-hub",
 	"version": "1.0.0",
 	"main": "src/index.js",
 	"author": "@sapphire",
@@ -17,6 +17,7 @@
 		"@sapphire/type": "^2.3.0",
 		"@sapphire/utilities": "^3.11.0",
 		"discord.js": "^14.7.1",
+		"dokdo": "^0.6.2",
 		"dotenv": "^16.0.3"
 	},
 	"devDependencies": {
