@@ -4,6 +4,8 @@ const { LogLevel, SapphireClient } = require('@sapphire/framework');
 const { prefix } = require('./config.json');
 const { GatewayIntentBits, Partials } = require('discord.js');
 const Dokdo = require('dokdo');
+const sequelize = require('sequelize');
+const { AFKModel } = require('./models');
 
 const client = new SapphireClient({
 	defaultPrefix: prefix,
@@ -29,6 +31,16 @@ const client = new SapphireClient({
 });
 
 client.dokdo = new Dokdo(client, { prefix, secrets: [client.token], aliases: ['dok', 'dokdo'] });
+
+client.sql = new sequelize.Sequelize({
+	dialect: 'sqlite',
+	storage: 'data/database.sqlite',
+	logging: false
+});
+
+client.data = {
+	afk: new AFKModel(client)
+};
 
 const main = async () => {
 	try {

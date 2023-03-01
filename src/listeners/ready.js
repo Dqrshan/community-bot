@@ -14,7 +14,7 @@ class UserEvent extends Listener {
 		});
 	}
 
-	run() {
+	async run() {
 		this.printBanner();
 		this.printStoreDebugInformation();
 
@@ -27,6 +27,8 @@ class UserEvent extends Listener {
 			],
 			status: 'dnd'
 		});
+
+		await this.container.client.data.afk.init();
 	}
 
 	printBanner() {
