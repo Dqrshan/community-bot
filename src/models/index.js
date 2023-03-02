@@ -1,3 +1,4 @@
 const { AFKModel } = require('./afkModel');
+const { MentionModel } = require('./mentionModel');
 
-module.exports = { AFKModel };
+module.exports = { AFKModel, MentionModel };

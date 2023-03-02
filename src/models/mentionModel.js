@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 
-class AFKModel {
+class MentionModel {
 	/**
 	 *
 	 * @param {import('@sapphire/framework').SapphireClient} client
@@ -10,29 +10,29 @@ class AFKModel {
 	}
 
 	async init() {
-		this.raw = this.client.sql.define('afk_data', {
+		this.raw = this.client.sql.define('mention_data', {
 			user: {
 				type: DataTypes.STRING,
-				allowNull: false,
-				unique: true
+				allowNull: false
 			},
 			guild: {
 				type: DataTypes.STRING,
 				allowNull: false
 			},
-			reason: {
+			member: {
 				type: DataTypes.STRING,
-				defaultValue: 'AFK'
+				allowNull: false
 			},
-			timestamp: {
-				type: DataTypes.INTEGER,
-				allowNull: true
+			msg: {
+				type: DataTypes.STRING,
+				allowNull: false,
+				unique: true
 			}
 		});
 
 		await this.raw.sync();
-		this.client.logger.debug('Synced AFK Model');
+		this.client.logger.debug('Synced Mention Model');
 	}
 }
 
-module.exports = { AFKModel };
+module.exports = { MentionModel };

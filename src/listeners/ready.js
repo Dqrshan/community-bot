@@ -29,6 +29,7 @@ class UserEvent extends Listener {
 		});
 
 		await this.container.client.data.afk.init();
+		await this.container.client.data.mention.init();
 	}
 
 	printBanner() {
