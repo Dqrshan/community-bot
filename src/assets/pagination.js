@@ -36,10 +36,10 @@ const Pagination = async (message, content, pages, buttonList, timeout = 60000) 
 
 	collector.on('collect', async (i) => {
 		switch (i.customId) {
-			case buttonList[0].data.customId:
+			case buttonList[0].data.custom_id:
 				page = page > 0 ? --page : pages.length - 1;
 				break;
-			case buttonList[1].data.customId:
+			case buttonList[1].data.custom_id:
 				page = page + 1 < pages.length ? ++page : 0;
 				break;
 			default:
