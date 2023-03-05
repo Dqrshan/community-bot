@@ -18,7 +18,8 @@ class HelpCommand extends Command {
 		const commands = this.container.client.stores.get('commands').map((cmd) => {
 			return {
 				name: cmd.name,
-				dir: cmd.fullCategory[0]
+				dir: cmd.fullCategory[0],
+				aliases: cmd.aliases ?? []
 			};
 		});
 		const dev = await this.container.client.users.fetch('838620835282812969');
@@ -30,9 +31,9 @@ class HelpCommand extends Command {
 						name: dot + ' ' + dir,
 						value: `${commands
 							.filter((c) => c.dir === dir)
-							.map((c) => this.format(c.name))
+							.map((c) => `${this.format(c.name)} ${c.aliases.length ? `(${c.aliases.map((a) => this.format(a)).join(', ')})` : ''}`)
 							.join('\n')}`,
-						inline: false
+						inline: true
 					};
 				})
 			)
