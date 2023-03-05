@@ -25,8 +25,11 @@ class MentionModel {
 			},
 			msg: {
 				type: DataTypes.STRING,
-				allowNull: false,
-				unique: true
+				allowNull: false
+			},
+			timestamp: {
+				type: DataTypes.INTEGER,
+				allowNull: false
 			}
 		});
 

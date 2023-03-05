@@ -32,7 +32,7 @@ class UserEvent extends Listener {
 					mentionData
 						.sort((x, y) => y.timestamp - x.timestamp)
 						.map((v, i) => ({
-							value: `\`${i + 1}\` <@!${v.member}>・[view msg](${v.msg}) (<:${Math.round(v.timestamp / 1000)}:R>)`
+							value: `\`${i + 1}\` <@!${v.member}>・[view msg](${v.msg}) (<t:${Math.round(v.timestamp / 1000)}:R>)`
 						})),
 					10
 				);
@@ -58,25 +58,28 @@ class UserEvent extends Listener {
 
 			await msg.client.data.afk.raw.destroy({ where: { user: msg.author.id, guild: msg.guildId } }).catch(() => {});
 		}
-		if (msg.mentions.members.size) {
-			let id = null;
+		if (msg.mentions && msg.mentions.members && msg.mentions.members.size) {
 			msg.mentions.members.forEach(async (member) => {
-				if (id === member.user.id) return;
+				let id = null;
+				msg.mentions.members.forEach(async (member) => {
+					if (id === member.user.id) return;
 
-				const data = await msg.client.data.afk.raw.findOne({ where: { user: member.user.id, guild: msg.guildId } }).catch(() => null);
-				if (data) {
-					msg.reply({
-						content: `**${member.displayName}** is AFK: ${data.reason} - <t:${Math.round(data.timestamp / 1000)}:R>`
-					});
-					await msg.client.data.mention.raw.upsert({
-						guild: msg.guildId,
-						user: member.user.id,
-						member: msg.author.id,
-						msg: msg.url
-					});
+					const data = await msg.client.data.afk.raw.findOne({ where: { user: member.user.id, guild: msg.guildId } }).catch(() => null);
+					if (data) {
+						msg.reply({
+							content: `**${member.displayName}** is AFK: ${data.reason} - <t:${Math.round(data.timestamp / 1000)}:R>`
+						});
+						await msg.client.data.mention.raw.upsert({
+							guild: msg.guildId,
+							user: member.user.id,
+							member: msg.author.id,
+							msg: msg.url,
+							timestamp: Date.now()
+						});
 
-					id = member.user.id;
-				}
+						id = member.user.id;
+					}
+				});
 			});
 		}
 		try {
