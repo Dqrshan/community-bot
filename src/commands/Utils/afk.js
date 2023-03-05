@@ -17,7 +17,10 @@ class AfkCommand extends Command {
 
 		if (!data) {
 			let reason = await args.rest('string').catch(() => 'AFK');
-			reason = reason.replaceAll(/@everyone/g, 'everyone').replaceAll(/@here/g, 'here');
+			reason = reason
+				.replaceAll(/@everyone/g, 'everyone')
+				.replaceAll(/@here/g, 'here')
+				.replaceAll(/@&/g, '');
 			msg.reply({ content: `You are now AFK. Reason: ${reason}` });
 			await msg.client.data.afk.raw.upsert({
 				user: msg.author.id,

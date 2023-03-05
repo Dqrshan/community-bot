@@ -29,15 +29,17 @@ class UserEvent extends Listener {
 			if (mentionData && mentionData.length) {
 				const pages = [];
 				const chunks = this.chunkify(
-					mentionData.map((v, i) => ({
-						value: `\`${i + 1}\` <@!${v.member}>・[view msg](${v.msg})`
-					})),
+					mentionData
+						.sort((x, y) => y.timestamp - x.timestamp)
+						.map((v, i) => ({
+							value: `\`${i + 1}\` <@!${v.member}>・[view msg](${v.msg}) (<:${Math.round(v.timestamp / 1000)}:R>)`
+						})),
 					10
 				);
 
 				chunks.forEach((chunk) => {
 					const embed = new EmbedBuilder()
-						.setTitle('Mentions')
+						.setTitle(`Mentions (${mentionData.length})`)
 						.setColor('#2F3136')
 						.setDescription(`${chunk.map((e) => e.value).join('\n')}`);
 					pages.push(embed);
@@ -57,7 +59,10 @@ class UserEvent extends Listener {
 			await msg.client.data.afk.raw.destroy({ where: { user: msg.author.id, guild: msg.guildId } }).catch(() => {});
 		}
 		if (msg.mentions.members.size) {
+			let id = null;
 			msg.mentions.members.forEach(async (member) => {
+				if (id === member.user.id) return;
+
 				const data = await msg.client.data.afk.raw.findOne({ where: { user: member.user.id, guild: msg.guildId } }).catch(() => null);
 				if (data) {
 					msg.reply({
@@ -69,6 +74,8 @@ class UserEvent extends Listener {
 						member: msg.author.id,
 						msg: msg.url
 					});
+
+					id = member.user.id;
 				}
 			});
 		}
