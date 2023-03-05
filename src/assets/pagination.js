@@ -13,7 +13,7 @@ const Pagination = async (message, content, pages, buttonList, timeout = 60000) 
 	if (!pages) throw new Error('Pages are not given.');
 	if (!buttonList) throw new Error('Buttons are not given.');
 	if (buttonList[0].data.style === ButtonStyle.Link || buttonList[1].data.style === ButtonStyle.Link)
-		throw new Error('Link buttons are not supported with discordjs-button-pagination');
+		throw new Error('Link buttons are not supported');
 	if (buttonList.length !== 2) throw new Error('Need two buttons.');
 
 	let page = 0;
@@ -26,7 +26,8 @@ const Pagination = async (message, content, pages, buttonList, timeout = 60000) 
 		components: [row]
 	});
 
-	const filter = (i) => i.customId === buttonList[0].data.custom_id || i.customId === buttonList[1].data.custom_id;
+	const filter = (i) =>
+		(i.customId === buttonList[0].data.custom_id || i.customId === buttonList[1].data.custom_id) && i.user.id === message.author.id;
 
 	const collector = await curPage.createMessageComponentCollector({
 		filter,
@@ -35,10 +36,10 @@ const Pagination = async (message, content, pages, buttonList, timeout = 60000) 
 
 	collector.on('collect', async (i) => {
 		switch (i.customId) {
-			case buttonList[0].customId:
+			case buttonList[0].data.customId:
 				page = page > 0 ? --page : pages.length - 1;
 				break;
-			case buttonList[1].customId:
+			case buttonList[1].data.customId:
 				page = page + 1 < pages.length ? ++page : 0;
 				break;
 			default:
