@@ -13,8 +13,7 @@ class AFKModel {
 		this.raw = this.client.sql.define('afk_data', {
 			user: {
 				type: DataTypes.STRING,
-				allowNull: false,
-				unique: true
+				allowNull: false
 			},
 			guild: {
 				type: DataTypes.STRING,
