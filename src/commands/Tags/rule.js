@@ -8,7 +8,8 @@ class RuleCommand extends Command {
 		super(context, {
 			...options,
 			description: 'Rule tags',
-			aliases: ['rules']
+			aliases: ['rules'],
+			cooldownDelay: 5000
 		});
 	}
 	/**
@@ -26,14 +27,13 @@ class RuleCommand extends Command {
 		);
 
 		const n = await args.pick('integer').catch(() => null);
-		const user = await args.pick('member').catch(() => null);
 		const keyword = await args.pick('string').catch(() => null);
 
-		if (!n && !user && !keyword) return msg.reply({ components: [button] });
+		if (!n && !keyword) return msg.reply({ components: [button] });
 
 		const keys = this.rules().map((m) => m.rule);
-
-		let content = user ? `*Tag suggestion for <@!${user.user.id}>*:\n` : '';
+		const user = msg.reference ? (await msg.channel.messages.fetch(msg.reference.messageId)).author : null;
+		let content = user ? `*Tag suggestion for <@!${user.id}>*:\n` : '';
 
 		if (keyword) {
 			const rule = this.rules().find((e) => e.content.toLowerCase().includes(keyword));
