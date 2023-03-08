@@ -10,7 +10,7 @@ class MentionModel {
 	}
 
 	async init() {
-		this.raw = this.client.sql.define('mention_data', {
+		this.main = this.client.sql.define('mention_data', {
 			user: {
 				type: DataTypes.STRING,
 				allowNull: false
@@ -33,7 +33,7 @@ class MentionModel {
 			}
 		});
 
-		await this.raw.sync();
+		await this.main.sync();
 		this.client.logger.debug('Synced Mention Model');
 	}
 }

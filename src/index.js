@@ -27,15 +27,29 @@ const client = new SapphireClient({
 		GatewayIntentBits.MessageContent
 	],
 	partials: [Partials.Channel],
-	loadMessageCommandListeners: true
+	loadMessageCommandListeners: true,
+	loadDefaultErrorListeners: true,
+	typing: true,
+	failIfNotExists: false
 });
 
 client.dokdo = new Dokdo(client, { prefix, secrets: [client.token], aliases: ['dok', 'dokdo'] });
 
 client.sql = new sequelize.Sequelize({
-	dialect: 'sqlite',
-	storage: 'data/database.sqlite',
-	logging: false
+	dialect: 'mysql',
+	logging: false,
+	username: process.env.MYSQLUSER,
+	port: process.env.MYSQLPORT,
+	database: process.env.MYSQLDATABASE,
+	password: process.env.MYSQLPASSWORD,
+	host: process.env.MYSQLHOST,
+	dialectOptions: {
+		ssl: {
+			rejectUnauthorized: false,
+			mode: 'VERIFY_IDENTITY',
+			require: true
+		}
+	}
 });
 
 client.data = {

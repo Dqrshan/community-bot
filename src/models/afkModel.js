@@ -10,7 +10,7 @@ class AFKModel {
 	}
 
 	async init() {
-		this.raw = this.client.sql.define('afk_data', {
+		this.main = this.client.sql.define('afk_data', {
 			user: {
 				type: DataTypes.STRING,
 				allowNull: false
@@ -29,7 +29,7 @@ class AFKModel {
 			}
 		});
 
-		await this.raw.sync();
+		await this.main.sync();
 		this.client.logger.debug('Synced AFK Model');
 	}
 }

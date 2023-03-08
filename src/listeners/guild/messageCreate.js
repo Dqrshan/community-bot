@@ -15,9 +15,9 @@ class UserEvent extends Listener {
 	 */
 	async run(msg) {
 		if (msg.author.bot || msg.author.system) return;
-		const data = await msg.client.data.afk.raw.findOne({ where: { user: msg.author.id, guild: msg.guildId } }).catch(() => null);
+		const data = await msg.client.data.afk.main.findOne({ where: { user: msg.author.id, guild: msg.guildId } }).catch(() => null);
 		if (data) {
-			const mentionData = await msg.client.data.mention.raw
+			const mentionData = await msg.client.data.mention.main
 				.findAll({
 					where: {
 						user: msg.author.id,
@@ -51,24 +51,24 @@ class UserEvent extends Listener {
 				];
 
 				await Pagination(msg, content, pages, buttons);
-				await msg.client.data.mention.raw.destroy({ where: { user: msg.author.id, guild: msg.guildId } }).catch(() => {});
+				await msg.client.data.mention.main.destroy({ where: { user: msg.author.id, guild: msg.guildId } }).catch(() => {});
 			} else {
 				msg.reply({ content });
 			}
 
-			await msg.client.data.afk.raw.destroy({ where: { user: msg.author.id, guild: msg.guildId } }).catch(() => {});
+			await msg.client.data.afk.main.destroy({ where: { user: msg.author.id, guild: msg.guildId } }).catch(() => {});
 		}
 		if (msg.mentions && msg.mentions.members && msg.mentions.members.size) {
 			let id = null;
 			msg.mentions.members.forEach(async (member) => {
 				if (id === member.user.id) return;
 
-				const data = await msg.client.data.afk.raw.findOne({ where: { user: member.user.id, guild: msg.guildId } }).catch(() => null);
+				const data = await msg.client.data.afk.main.findOne({ where: { user: member.user.id, guild: msg.guildId } }).catch(() => null);
 				if (data) {
 					msg.reply({
 						content: `**${member.displayName}** is AFK: ${data.reason} - <t:${Math.round(data.timestamp / 1000)}:R>`
 					});
-					await msg.client.data.mention.raw.upsert({
+					await msg.client.data.mention.main.upsert({
 						guild: msg.guildId,
 						user: member.user.id,
 						member: msg.author.id,

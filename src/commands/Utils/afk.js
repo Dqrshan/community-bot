@@ -13,7 +13,7 @@ class AfkCommand extends Command {
 	 * @param {import('@sapphire/framework').Args} args
 	 */
 	async messageRun(msg, args) {
-		const data = await msg.client.data.afk.raw.findOne({ where: { user: msg.author.id, guild: msg.guildId } }).catch(() => null);
+		const data = await msg.client.data.afk.main.findOne({ where: { user: msg.author.id, guild: msg.guildId } }).catch(() => null);
 
 		if (!data) {
 			let reason = await args.rest('string').catch(() => 'AFK');
@@ -22,7 +22,7 @@ class AfkCommand extends Command {
 				.replaceAll(/@here/g, 'here')
 				.replaceAll(/@&/g, '');
 			msg.reply({ content: `You are now AFK. Reason: ${reason}` });
-			await msg.client.data.afk.raw.upsert({
+			await msg.client.data.afk.main.upsert({
 				user: msg.author.id,
 				guild: msg.guildId,
 				reason,

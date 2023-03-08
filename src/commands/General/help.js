@@ -9,12 +9,13 @@ class HelpCommand extends Command {
 	constructor(context, options) {
 		super(context, {
 			...options,
-			description: 'All supported & available commands'
+			description: 'All supported & available commands',
+            aliases: ['h']
 		});
 	}
 
 	async messageRun(message) {
-		const dirs = [...new Set(this.container.client.stores.get('commands').map((e) => e.fullCategory[0]))];
+		const dirs = [...new Set(this.container.client.stores.get('commands').map((e) => e.fullCategory[0]))].sort((a, b) => a - b);
 		const commands = this.container.client.stores.get('commands').map((cmd) => {
 			return {
 				name: cmd.name,
@@ -22,7 +23,7 @@ class HelpCommand extends Command {
 				aliases: cmd.aliases ?? []
 			};
 		});
-		const dev = await this.container.client.users.fetch('838620835282812969');
+		// const dev = await this.container.client.users.fetch('838620835282812969');
 
 		const embed = new EmbedBuilder()
 			.addFields(
@@ -37,12 +38,12 @@ class HelpCommand extends Command {
 					};
 				})
 			)
-			.setThumbnail(this.container.client.user.avatarURL())
+        	.setTitle('Help')
+			.setAuthor({
+                name: this.container.client.user.username,
+                iconURL: this.container.client.user.avatarURL()
+            })
 			.setColor('Blurple')
-			.setFooter({
-				text: `Dev・${dev.tag}`,
-				iconURL: dev.avatarURL()
-			});
 
 		return send(message, { embeds: [embed] });
 	}
