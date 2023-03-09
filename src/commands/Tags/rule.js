@@ -75,7 +75,7 @@ class RuleCommand extends Command {
 			{
 				rule: 4,
 				content: stripIndents`
-				**Rule 4**・Adhere to Discord's [Community Guidelines](https://discord.com/guidelines) and [Terms of Service](https://discord.com/terms).`
+				**Rule 4**・Adhere to Discord's Community Guidelines (<https://discord.com/guidelines>) and Terms of Service (<https://discord.com/terms>).`
 			},
 			{
 				rule: 5,
