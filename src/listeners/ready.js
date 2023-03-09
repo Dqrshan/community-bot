@@ -17,16 +17,29 @@ class UserEvent extends Listener {
 	async run() {
 		this.printBanner();
 		this.printStoreDebugInformation();
-
-		this.container.client.user.setPresence({
-			activities: [
-				{
-					name: 'You',
-					type: ActivityType.Watching
-				}
-			],
-			status: 'dnd'
-		});
+		const activities = [
+			{
+				name: 'You',
+				type: ActivityType.Watching
+			},
+			{
+				name: `${this.container.client.options.defaultPrefix}help`,
+				type: ActivityType.Listening
+			}
+		];
+		setInterval(() => {
+			const curr = activities.shift();
+			this.container.client.user.setPresence({
+				activities: [
+					{
+						name: curr.name,
+						type: curr.type
+					}
+				],
+				status: 'dnd'
+			});
+			activities.push(curr);
+		}, 10 * 1000);
 
 		await this.container.client.data.afk.init();
 		await this.container.client.data.mention.init();
