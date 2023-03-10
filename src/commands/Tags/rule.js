@@ -9,7 +9,7 @@ class RuleCommand extends Command {
 			...options,
 			description: 'Rule tags',
 			aliases: ['rules', 'r'],
-			cooldownDelay: 5000
+			cooldownDelay: 1000
 		});
 	}
 	/**
