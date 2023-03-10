@@ -25,7 +25,7 @@ class AFKModel {
 			},
 			timestamp: {
 				type: DataTypes.INTEGER,
-				allowNull: true
+				allowNull: false
 			}
 		});
 
