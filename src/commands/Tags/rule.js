@@ -2,14 +2,17 @@ const { Command } = require('@sapphire/framework');
 const { reply } = require('@sapphire/plugin-editable-commands');
 const { stripIndents } = require('common-tags');
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const {
+	links: { rules }
+} = require('../../config.json');
 
 class RuleCommand extends Command {
 	constructor(context, options) {
 		super(context, {
 			...options,
 			description: 'Rule tags',
-			aliases: ['rules'],
-			cooldownDelay: 5000
+			aliases: ['rules', 'r'],
+			cooldownDelay: 1000
 		});
 	}
 	/**
@@ -18,12 +21,7 @@ class RuleCommand extends Command {
 	 * @param {import('@sapphire/framework').Args} args
 	 */
 	async messageRun(msg, args) {
-		const button = new ActionRowBuilder().setComponents(
-			new ButtonBuilder()
-				.setLabel('Rules')
-				.setStyle(ButtonStyle.Link)
-				.setURL('https://discord.com/channels/1023702510730494012/1075735310736035900/1075737635408072794')
-		);
+		const button = new ActionRowBuilder().setComponents(new ButtonBuilder().setLabel('Rules').setStyle(ButtonStyle.Link).setURL(rules));
 
 		const n = await args.pick('integer').catch(() => null);
 		const keyword = await args.pick('string').catch(() => null);
