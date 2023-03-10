@@ -10,7 +10,7 @@ class HelpCommand extends Command {
 		super(context, {
 			...options,
 			description: 'All supported & available commands',
-            aliases: ['h']
+            		aliases: ['h']
 		});
 	}
 
@@ -38,11 +38,11 @@ class HelpCommand extends Command {
 					};
 				})
 			)
-        	.setTitle('Help')
+        		.setTitle('Help')
 			.setAuthor({
-                name: this.container.client.user.username,
-                iconURL: this.container.client.user.avatarURL()
-            })
+            			name: this.container.client.user.username,
+           			iconURL: this.container.client.user.avatarURL()
+           		})
 			.setColor('Blurple')
 
 		return send(message, { embeds: [embed] });

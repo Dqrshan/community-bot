@@ -58,12 +58,12 @@ class RuleCommand extends Command {
 			{
 				rule: 1,
 				content: stripIndents`
-            	**Rule 1**・Be respectful and civil. We have absolutely zero tolerance for any racism, sexism, hate speech, or any other offensive/disruptive behaviour. This applies to voice chats as well. The use of profanity should be kept to a minimum.`
+            			**Rule 1**・Be respectful and civil. We have absolutely zero tolerance for any racism, sexism, hate speech, or any other offensive/disruptive behaviour. This applies to voice chats as well. The use of profanity should be kept to a minimum.`
 			},
 			{
 				rule: 2,
 				content: stripIndents`
-            	**Rule 2**・Please keep all discussion in text channels and general voice channels in English.`
+            			**Rule 2**・Please keep all discussion in text channels and general voice channels in English.`
 			},
 			{
 				rule: 3,
