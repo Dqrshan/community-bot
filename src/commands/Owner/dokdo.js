@@ -1,6 +1,6 @@
 const { Command } = require('@sapphire/framework');
 
-class UserCommand extends Command {
+class DokdoCommand extends Command {
 	constructor(context, options) {
 		super(context, {
 			...options,
@@ -16,5 +16,5 @@ class UserCommand extends Command {
 }
 
 module.exports = {
-	UserCommand
+	DokdoCommand
 };

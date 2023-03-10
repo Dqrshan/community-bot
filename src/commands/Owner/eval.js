@@ -4,7 +4,7 @@ const { Type } = require('@sapphire/type');
 const { codeBlock, isThenable } = require('@sapphire/utilities');
 const { inspect } = require('node:util');
 
-class UserCommand extends Command {
+class EvalCommand extends Command {
 	constructor(context, options) {
 		super(context, {
 			...options,
@@ -78,5 +78,5 @@ class UserCommand extends Command {
 }
 
 module.exports = {
-	UserCommand
+	EvalCommand
 };
