@@ -10,7 +10,7 @@ class TicketCommand extends Command {
 		super(context, {
 			...options,
 			description: 'Sends the ticket embed (tag response)',
-			preconditions: ['StaffOnly']
+			preconditions: ['StaffOnly', 'GuildOnly']
 		});
 	}
 	/**

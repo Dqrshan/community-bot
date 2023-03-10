@@ -7,7 +7,8 @@ class MembersCommand extends Command {
 		super(context, {
 			...options,
 			description: 'View detailed member count of the server',
-			aliases: ['mc']
+			aliases: ['mc'],
+			preconditions: ['GuildOnly']
 		});
 	}
 

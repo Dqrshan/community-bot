@@ -16,7 +16,7 @@ class AvatarCommand extends Command {
 	 */
 	async messageRun(msg, args) {
 		const user = await args.pick('user').catch(() => msg.author);
-		const member = await msg.guild.members.fetch({ user }).catch(() => null);
+		const member = msg.guild ? await msg.guild.members.fetch({ user }).catch(() => null) : null;
 
 		const base = new EmbedBuilder()
 			.setTitle(user.tag)

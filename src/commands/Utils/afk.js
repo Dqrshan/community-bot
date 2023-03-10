@@ -4,7 +4,8 @@ class AfkCommand extends Command {
 	constructor(context, options) {
 		super(context, {
 			...options,
-			description: 'Sets your AFK status'
+			description: 'Sets your AFK status',
+			preconditions: ['GuildOnly']
 		});
 	}
 
