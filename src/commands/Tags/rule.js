@@ -8,7 +8,7 @@ class RuleCommand extends Command {
 		super(context, {
 			...options,
 			description: 'Rule tags',
-			aliases: ['rules'],
+			aliases: ['rules', 'r'],
 			cooldownDelay: 5000
 		});
 	}
