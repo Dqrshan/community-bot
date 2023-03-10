@@ -10,7 +10,7 @@ class HelpCommand extends Command {
 		super(context, {
 			...options,
 			description: 'All supported & available commands',
-            aliases: ['h']
+            		aliases: ['h']
 		});
 	}
 
