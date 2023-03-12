@@ -25,11 +25,13 @@ class BackupCommand extends Command {
 
 		if (c) {
 			msg.reply({
-				files: [file]
+				files: [file],
+				content: `Backup ${new Date().toString()}`
 			});
 		} else {
 			const m = await msg.author.send({
-				files: [file]
+				files: [file],
+				content: `Backup ${new Date().toString()}`
 			});
 			const comp = new ActionRowBuilder().setComponents(new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('Jump!').setURL(m.url));
 			await msg.reply({
