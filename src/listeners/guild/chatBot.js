@@ -19,8 +19,7 @@ class ChatEvent extends Listener {
 		if (msg.system) return;
 		if (!msg.guild) return;
 
-		// if (msg.channel.name.includes('chatbot')) {
-		if (msg.channelId === '926319580790550578') {
+		if (msg.channel.name.includes('chatbot')) {
 			try {
 				if (!msg.content) return;
 				if (msg.content.length < 2) return;
