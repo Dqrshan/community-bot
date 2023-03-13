@@ -1,7 +1,7 @@
 const { Listener } = require('@sapphire/framework');
 const { EmbedBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const ms = require('pretty-ms');
-const { Pagination } = require('../../assets/pagination');
+const { Pagination } = require('../../lib/pagination');
 
 class UserEvent extends Listener {
 	constructor(context, options = {}) {

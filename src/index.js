@@ -36,20 +36,9 @@ const client = new SapphireClient({
 client.dokdo = new Dokdo(client, { prefix, secrets: [client.token], aliases: ['dok', 'dokdo'] });
 
 client.sql = new sequelize.Sequelize({
-	dialect: 'mysql',
+	dialect: 'sqlite',
 	logging: false,
-	username: process.env.MYSQLUSER,
-	port: process.env.MYSQLPORT,
-	database: process.env.MYSQLDATABASE,
-	password: process.env.MYSQLPASSWORD,
-	host: process.env.MYSQLHOST,
-	dialectOptions: {
-		ssl: {
-			rejectUnauthorized: false,
-			mode: 'VERIFY_IDENTITY',
-			require: true
-		}
-	}
+	storage: 'data/database.sqlite'
 });
 
 client.data = {
