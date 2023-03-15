@@ -1,7 +1,5 @@
 const { Listener } = require('@sapphire/framework');
-const { Client } = require('smartestchatbot');
-
-const Chat = new Client(process.env.LEBYY_API);
+const clever_chat = require('clever-chat');
 
 class ChatEvent extends Listener {
 	constructor(context, options) {
@@ -24,33 +22,19 @@ class ChatEvent extends Listener {
 				if (!msg.content) return;
 				if (msg.content.length < 2) return;
 				msg.channel.sendTyping();
-
-				const res = await Chat.chat(
-					{
-						message: msg.content,
-						name: 'Rajalakshmi',
-						master: 'Darshan',
-						user: msg.author.id,
-						age: '420',
-						birthday: 'September 25',
-						gender: 'female',
-						boyfriend: 'Lorenz',
-						girlfriend: 'Lorenz',
-						nationality: 'Indian',
-						country: 'India',
-						birthplace: 'Bangalore',
-						state: 'Karnataka',
-						location: 'India',
-						email: 'no',
-						website: 'https://darshan-1.gitbook.io/bangalore-hub/',
-						sign: 'Libra',
-						friend: 'Lorenz',
-						mother: 'Vijaylakshmi'
-					},
-					'en'
-				);
-
-				msg.reply({ content: res });
+				const chatbot = new clever_chat({
+					name: 'Rajalakshmi',
+					gender: 'Female',
+					developer_name: 'Darshan',
+					language: 'en',
+					user: msg.author.id
+				});
+				let res = await chatbot.chat(msg.content);
+				res = res
+					.replaceAll(/@everyone/g, 'everyone')
+					.replaceAll(/@here/g, 'here')
+					.replaceAll(/@&/g, '');
+				msg.reply({ content: res }).catch(() => {});
 			} catch (error) {
 				msg.client.logger.error(error);
 			}
