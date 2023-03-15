@@ -57,6 +57,7 @@ class UserEvent extends Listener {
 			}
 
 			await msg.client.data.afk.main.destroy({ where: { user: msg.author.id, guild: msg.guildId } }).catch(() => {});
+			if (msg.member.displayName.startsWith('[AFK]')) msg.member.setNickname(msg.member.displayName.replace('[AFK]', '')).catch(() => {});
 		}
 		if (msg.mentions && msg.mentions.members && msg.mentions.members.size) {
 			let id = null;
@@ -66,7 +67,7 @@ class UserEvent extends Listener {
 				const data = await msg.client.data.afk.main.findOne({ where: { user: member.user.id, guild: msg.guildId } }).catch(() => null);
 				if (data) {
 					msg.reply({
-						content: `**${member.displayName}** is AFK: ${data.reason} - <t:${Math.round(data.timestamp / 1000)}:R>`
+						content: `**${member.displayName.replace('[AFK] ', '')}** is AFK: ${data.reason} - <t:${Math.round(data.timestamp / 1000)}:R>`
 					});
 					await msg.client.data.mention.main.upsert({
 						guild: msg.guildId,
