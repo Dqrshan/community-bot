@@ -27,7 +27,14 @@ class EvalCommand extends Command {
 		});
 
 		const output = success ? codeBlock('js', result) : `**ERROR**: ${codeBlock('bash', result)}`;
-		if (args.getFlags('silent', 's')) return null;
+		if (args.getFlags('silent', 's')) {
+			if (success) {
+				message.react('✅');
+			} else {
+				message.react('❌');
+			}
+			return;
+		}
 
 		const typeFooter = `**Type**: ${codeBlock('typescript', type)}`;
 
