@@ -1,6 +1,7 @@
 const { Listener } = require('@sapphire/framework');
 const { blue, gray, green, magenta, magentaBright, white, yellow } = require('colorette');
 const { ActivityType } = require('discord.js');
+const { joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
 
 const dev = process.env.NODE_ENV !== 'production';
 
@@ -43,6 +44,20 @@ class UserEvent extends Listener {
 
 		await this.container.client.data.afk.init();
 		await this.container.client.data.mention.init();
+
+		const toJoinChannel = this.container.client.channels.cache.get('1083327348788695090');
+
+		const conn = joinVoiceChannel({
+			channelId: '1083327348788695090',
+			guildId: '1023702510730494012',
+			adapterCreator: toJoinChannel.guild.voiceAdapterCreator
+		});
+
+		conn.on(VoiceConnectionStatus.Ready, () => {
+			this.container.client.logger.info('Joined voice channel');
+		});
+
+		this.container.client.logger.debug(`Logged in as ${this.container.client.user.tag} (${this.container.client.id})`);
 	}
 
 	printBanner() {
