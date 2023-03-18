@@ -7,7 +7,7 @@ class SnipeCommand extends Command {
 			...options,
 			aliases: ['s'],
 			description: 'Snipe deleted messages',
-			preconditions: ['GuildOnly']
+			preconditions: ['GuildOnly', 'StaffOnly']
 		});
 	}
 	/**
