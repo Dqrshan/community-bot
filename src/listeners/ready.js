@@ -44,6 +44,7 @@ class UserEvent extends Listener {
 
 		await this.container.client.data.afk.init();
 		await this.container.client.data.mention.init();
+		await this.container.client.data.snipes.init();
 
 		const toJoinChannel = this.container.client.channels.cache.get('1083327348788695090');
 
