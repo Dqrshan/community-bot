@@ -5,7 +5,7 @@ const { prefix } = require('./config.json');
 const { GatewayIntentBits, Partials } = require('discord.js');
 const Dokdo = require('dokdo');
 const sequelize = require('sequelize');
-const { AFKModel, MentionModel, SnipeModel } = require('./models');
+const { AFK, Mentions, Snipes, Tags } = require('./models');
 
 const client = new SapphireClient({
 	defaultPrefix: prefix,
@@ -42,9 +42,10 @@ client.sql = new sequelize.Sequelize({
 });
 
 client.data = {
-	afk: new AFKModel(client),
-	mention: new MentionModel(client),
-	snipes: new SnipeModel(client)
+	afk: new AFK(client),
+	mention: new Mentions(client),
+	snipes: new Snipes(client),
+	tags: new Tags(client)
 };
 
 const main = async () => {
