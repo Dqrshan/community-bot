@@ -16,9 +16,20 @@ class TagResponse extends Listener {
 		if (msg.author.bot || msg.webhookId || msg.system) return;
 
 		if (msg.content.startsWith(tagPrefix)) {
-			const trigger = msg.content.slice(tagPrefix.length);
+			const users = msg.mentions.members
+				? msg.mentions.members.map((m) => `<@!${m.user.id}>`).join(', ')
+				: msg.reference
+				? (await msg.fetchReference()).author
+				: null;
+			let trigger = msg.content.slice(tagPrefix.length);
+			if (trigger.includes(' ')) trigger = trigger.split(' ')[0];
 			const response = msg.client.data.tags.get(trigger);
-			if (response) msg.reply(response);
+			if (response) {
+				msg.reply({
+					content: `${users ? `*Tag suggestion for ${users}:*\n` : ''}${response}`
+				});
+				msg.client.logger.info(`Tag used by ${msg.author.tag}[${msg.author.id}]: "${trigger}"`);
+			}
 		}
 	}
 }
