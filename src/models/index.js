@@ -1,5 +1,6 @@
-const { AFKModel } = require('./afkModel');
-const { MentionModel } = require('./mentionModel');
-const { SnipeModel } = require('./snipeModel');
+const { AFK } = require('./afkModel');
+const { Mentions } = require('./mentionModel');
+const { Snipes } = require('./snipeModel');
+const { Tags } = require('./tagsModel');
 
-module.exports = { AFKModel, MentionModel, SnipeModel };
+module.exports = { AFK, Mentions, Snipes, Tags };

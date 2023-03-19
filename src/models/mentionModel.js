@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 
-class MentionModel {
+class Mentions {
 	/**
 	 *
 	 * @param {import('@sapphire/framework').SapphireClient} client
@@ -38,4 +38,4 @@ class MentionModel {
 	}
 }
 
-module.exports = { MentionModel };
+module.exports = { Mentions };

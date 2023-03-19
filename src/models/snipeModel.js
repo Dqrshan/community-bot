@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { Collection } = require('discord.js');
 
-class SnipeModel {
+class Snipes {
 	/**
 	 *
 	 * @param {import('@sapphire/framework').SapphireClient} client
@@ -77,4 +77,4 @@ class SnipeModel {
 	}
 }
 
-module.exports = { SnipeModel };
+module.exports = { Snipes };

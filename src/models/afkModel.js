@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 
-class AFKModel {
+class AFK {
 	/**
 	 *
 	 * @param {import('@sapphire/framework').SapphireClient} client
@@ -34,4 +34,4 @@ class AFKModel {
 	}
 }
 
-module.exports = { AFKModel };
+module.exports = { AFK };
