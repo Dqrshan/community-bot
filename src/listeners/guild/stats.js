@@ -12,7 +12,7 @@ class StatsListener extends Listener {
 		setInterval(async () => {
 			const guild = this.container.client.guilds.cache.get('1023702510730494012');
 			if (!guild) return;
-			const channel = guild.channels.cache.get('1077860879296638996');
+			const channel = guild.channels.cache.get('1083327348788695090');
 			if (!channel) return;
 
 			if (parseInt(channel.name.replace('Members・', '')) === guild.memberCount) return;
