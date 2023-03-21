@@ -1,8 +1,9 @@
 const { Command } = require('@sapphire/framework');
-const { send } = require('@sapphire/plugin-editable-commands');
-const { EmbedBuilder } = require('discord.js');
+const { send, reply } = require('@sapphire/plugin-editable-commands');
+const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, ComponentType } = require('discord.js');
 const {
-	emojis: { dot }
+	emojis: { dot },
+	owners
 } = require('../../config.json');
 
 class HelpCommand extends Command {
@@ -10,42 +11,100 @@ class HelpCommand extends Command {
 		super(context, {
 			...options,
 			description: 'All supported & available commands',
-            		aliases: ['h']
+			aliases: ['h']
 		});
 	}
 
+	/**
+	 * @param {import('discord.js').Message} message
+	 */
 	async messageRun(message) {
-		const dirs = [...new Set(this.container.client.stores.get('commands').map((e) => e.fullCategory[0]))].sort((a, b) => a - b);
-		const commands = this.container.client.stores.get('commands').map((cmd) => {
+		let dirs;
+		if (owners.includes(message.author.id)) {
+			dirs = [...new Set(this.container.client.stores.get('commands').map((e) => e.fullCategory[0]))].sort((a, b) => a - b);
+		} else {
+			dirs = [
+				...new Set(
+					this.container.client.stores
+						.get('commands')
+						.filter((e) => e.fullCategory[0] !== 'Owner')
+						.map((e) => e.fullCategory[0])
+				)
+			].sort((a, b) => a - b);
+		}
+		const cats = dirs.map((dir) => {
+			const commands = this.container.client.stores.get('commands').filter((c) => c.fullCategory[0] === dir);
 			return {
-				name: cmd.name,
-				dir: cmd.fullCategory[0],
-				aliases: cmd.aliases ?? []
+				dir,
+				commands
 			};
 		});
-		// const dev = await this.container.client.users.fetch('838620835282812969');
+		const menu = (x) =>
+			new StringSelectMenuBuilder()
+				.setPlaceholder('Select..')
+				.setCustomId('_H')
+				.setOptions(
+					dirs.map((dir) => {
+						return {
+							emoji: '1080379549688275024',
+							label: dir,
+							value: dir.toLowerCase()
+						};
+					})
+				)
+				.setDisabled(x);
 
-		const embed = new EmbedBuilder()
-			.addFields(
-				dirs.map((dir) => {
-					return {
-						name: dot + ' ' + dir,
-						value: `${commands
-							.filter((c) => c.dir === dir)
-							.map((c) => `${this.format(c.name)} ${c.aliases.length ? `(${c.aliases.map((a) => this.format(a)).join(', ')})` : ''}`)
-							.join('\n')}`,
-						inline: true
-					};
+		const init = await reply(message, {
+			content: `Select a category from the menu below!`,
+			components: [new ActionRowBuilder().setComponents(menu(false))]
+		}).catch(() => {});
+
+		const collector = init.createMessageComponentCollector({
+			componentType: ComponentType.StringSelect,
+			filter: async (i) => {
+				if (i.user.id === message.author.id) return true;
+				else i.reply({ ephemeral: true, content: 'This menu is not for you!' }).catch(() => {});
+				return false;
+			},
+			time: 60 * 1000
+		});
+
+		collector.on('collect', async (i) => {
+			await i.deferUpdate().catch(() => {});
+			const [value] = i.values;
+			const dir = cats.find((d) => d.dir.toLowerCase() === value);
+
+			const embed = new EmbedBuilder()
+				.setTitle(dir.dir)
+				.setAuthor({
+					name: i.client.user.username,
+					iconURL: i.client.user.avatarURL()
 				})
-			)
-        		.setTitle('Help')
-			.setAuthor({
-            			name: this.container.client.user.username,
-           			iconURL: this.container.client.user.avatarURL()
-           		})
-			.setColor('Blurple')
+				.addFields(
+					dir.commands.map((c) => {
+						return {
+							name: `${dot} ${c.name}`,
+							value: `${c.description ? c.description : 'No description'}${
+								c.aliases && c.aliases.length ? `\n> Aliases: ${c.aliases.map((a) => `\`${a}\``).join(', ')}` : ''
+							}`,
+							inline: true
+						};
+					})
+				)
+				.setColor('Blurple')
+				.setFooter({
+					text: `Prefix: ${this.container.client.options.defaultPrefix} | ${i.user.tag}`,
+					iconURL: i.member.displayAvatarURL()
+				})
+				.setImage('https://singlecolorimage.com/get/5865F2/450x20');
 
-		return send(message, { embeds: [embed] });
+			await init.edit({ embeds: [embed] }).catch(() => {});
+			collector.resetTimer();
+		});
+
+		collector.once('end', async () => {
+			await init.edit({ components: [new ActionRowBuilder().setComponents(menu(true))] }).catch(() => {});
+		});
 	}
 
 	/**
