@@ -26,8 +26,16 @@ const Pagination = async (message, content, pages, buttonList, timeout = 60000) 
 		components: [row]
 	});
 
-	const filter = (i) =>
-		(i.customId === buttonList[0].data.custom_id || i.customId === buttonList[1].data.custom_id) && i.user.id === message.author.id;
+	const filter = async (i) => {
+		if ((i.customId === buttonList[0].data.custom_id || i.customId === buttonList[1].data.custom_id) && i.user.id === message.author.id)
+			return true;
+		else
+			i.reply({
+				ephemeral: true,
+				content: 'This pagination is not for you!'
+			}).catch(() => {});
+		return false;
+	};
 
 	const collector = await curPage.createMessageComponentCollector({
 		filter,
