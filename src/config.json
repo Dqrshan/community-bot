@@ -6,7 +6,10 @@
 	},
 	"links": {
 		"rules": "https://discord.com/channels/1023702510730494012/1075735310736035900/1075737635408072794",
-		"links": "https://discord.com/channels/1023702510730494012/1075735310736035900/1075737922113908747"
+		"links": "https://discord.com/channels/1023702510730494012/1075735310736035900/1075737922113908747",
+		"website": "https://lorenz1.gitbook.io/bangalore-hub",
+		"topgg": "https://top.gg/servers/1023702510730494012/vote",
+		"terms": "https://lorenz1.gitbook.io/bangalore-hub/tc/terms"
 	},
 	"tagPrefix": "?"
 }
