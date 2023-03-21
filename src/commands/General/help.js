@@ -3,8 +3,13 @@ const { send, reply } = require('@sapphire/plugin-editable-commands');
 const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, ComponentType } = require('discord.js');
 const {
 	emojis: { dot },
-	owners
+	owners,
+	links: { rules, terms, topgg, website },
+	prefix,
+	tagPrefix
 } = require('../../config.json');
+
+const links = `[Rules](${rules})・[ToS](${terms})・[Top.gg](${topgg})・[Web](${website})`;
 
 class HelpCommand extends Command {
 	constructor(context, options) {
@@ -33,7 +38,10 @@ class HelpCommand extends Command {
 			].sort((a, b) => a - b);
 		}
 		const cats = dirs.map((dir) => {
-			const commands = this.container.client.stores.get('commands').filter((c) => c.fullCategory[0] === dir);
+			const commands = this.container.client.stores
+				.get('commands')
+				.filter((c) => c.fullCategory[0] === dir)
+				.sort((x, y) => y.name - x.name);
 			return {
 				dir,
 				commands
@@ -75,28 +83,29 @@ class HelpCommand extends Command {
 			const dir = cats.find((d) => d.dir.toLowerCase() === value);
 
 			const embed = new EmbedBuilder()
-				.setTitle(dir.dir)
+				.setTitle(`${this.format(dir.dir)} (${dir.commands.size})`)
 				.setAuthor({
 					name: i.client.user.username,
 					iconURL: i.client.user.avatarURL()
 				})
+				.setDescription(links)
 				.addFields(
 					dir.commands.map((c) => {
 						return {
 							name: `${dot} ${c.name}`,
 							value: `${c.description ? c.description : 'No description'}${
-								c.aliases && c.aliases.length ? `\n> Aliases: ${c.aliases.map((a) => `\`${a}\``).join(', ')}` : ''
+								c.aliases && c.aliases.length ? `\n__Aliases:__\n${c.aliases.map((a) => `\`${a}\``).join(', ')}` : ''
 							}`,
-							inline: true
+							inline: c.aliases ? false : true
 						};
 					})
 				)
 				.setColor('Blurple')
 				.setFooter({
-					text: `Prefix: ${this.container.client.options.defaultPrefix} | ${i.user.tag}`,
+					text: `Prefix: ${prefix} | Tag Prefix: ${tagPrefix} | Requested by ${i.user.tag}`,
 					iconURL: i.member.displayAvatarURL()
 				})
-				.setImage('https://singlecolorimage.com/get/5865F2/450x20');
+				.setImage('https://singlecolorimage.com/get/5865F2/368x20');
 
 			await init.edit({ embeds: [embed] }).catch(() => {});
 			collector.resetTimer();
@@ -113,7 +122,15 @@ class HelpCommand extends Command {
 	 * @returns {string}
 	 */
 	format(str) {
-		return str[0].toUpperCase() + str.slice(1);
+		const emojis = {
+			General: '🤖',
+			Owner: '👑',
+			Staff: '🛠️',
+			Tags: '🎟️',
+			Utils: '⚙️'
+		};
+
+		return `\\${emojis[str]} ${str}`;
 	}
 }
 
