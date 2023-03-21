@@ -30,7 +30,7 @@ class RuleCommand extends Command {
 
 		const keys = this.rules().map((m) => m.rule);
 		const user = msg.reference ? (await msg.channel.messages.fetch(msg.reference.messageId)).author : null;
-		let content = user ? `*Tag suggestion for <@!${user.id}>*:\n` : '';
+		let content = user ? `*Rule suggestion for <@!${user.id}>*:\n` : '';
 
 		if (keyword) {
 			const rule = this.rules().find((e) => e.content.toLowerCase().includes(keyword));
