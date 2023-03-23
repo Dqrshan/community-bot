@@ -5,6 +5,9 @@ const { joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
 
 const dev = process.env.NODE_ENV !== 'production';
 
+const cId = '1083327348788695090';
+const gId = '1023702510730494012';
+
 class UserEvent extends Listener {
 	style = dev ? yellow : blue;
 
@@ -16,8 +19,11 @@ class UserEvent extends Listener {
 	}
 
 	async run() {
+		// @sapphire defaults
 		this.printBanner();
 		this.printStoreDebugInformation();
+
+		// dynamic status
 		const activities = [
 			{
 				name: 'You',
@@ -42,23 +48,33 @@ class UserEvent extends Listener {
 			activities.push(curr);
 		}, 10 * 1000);
 
+		// initiate databases
 		await this.container.client.data.afk.init();
 		await this.container.client.data.mention.init();
 		await this.container.client.data.snipes.init();
 		await this.container.client.data.tags.init();
 
-		const toJoinChannel = this.container.client.channels.cache.get('1083327348788695090');
+		// guild stats update + voice join
+		const vCh = this.container.client.channels.cache.get(cId);
 
 		const conn = joinVoiceChannel({
-			channelId: '1083327348788695090',
-			guildId: '1023702510730494012',
-			adapterCreator: toJoinChannel.guild.voiceAdapterCreator
+			channelId: cId,
+			guildId: gId,
+			adapterCreator: vCh.guild.voiceAdapterCreator
 		});
 
 		conn.on(VoiceConnectionStatus.Ready, () => {
 			this.container.client.logger.info('Joined voice channel');
 		});
 
+		setInterval(async () => {
+			const guild = this.container.client.guilds.cache.get(gId);
+			if (parseInt(vCh.name.replace('Members・', '')) === guild.memberCount) return;
+			await vCh.edit({ name: `Members・` }).catch(() => {});
+			this.container.client.logger.info('Updated Member Count');
+		}, 60 * 1000);
+
+		// ready!
 		this.container.client.logger.debug(`Logged in as ${this.container.client.user.tag} (${this.container.client.id})`);
 	}
 
