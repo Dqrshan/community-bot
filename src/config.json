@@ -11,5 +11,66 @@
 		"topgg": "https://top.gg/servers/1023702510730494012/vote",
 		"terms": "https://lorenz1.gitbook.io/bangalore-hub/tc/terms"
 	},
-	"tagPrefix": "?"
+	"tagPrefix": "?",
+	"roles": {
+		"grade": [
+			{
+				"name": "Grade 8",
+				"emoji": "1088440660090167306",
+				"role": "1031068904342171778"
+			},
+			{
+				"name": "Grade 9",
+				"emoji": "1088440667316961300",
+				"role": "1031068883009949746"
+			},
+			{
+				"name": "Grade 10",
+				"emoji": "1088440674015260822",
+				"role": "1031068858406146069"
+			},
+			{
+				"name": "Grade 11",
+				"emoji": "1088440682944942091",
+				"role": "1031068837308813424"
+			},
+			{
+				"name": "Grade 12",
+				"emoji": "1088440693397143614",
+				"role": "1031068799128059955"
+			},
+			{
+				"name": "Alumnus",
+				"emoji": "🎓",
+				"role": "1047149364625293352"
+			}
+		],
+		"activity": [
+			{
+				"name": "Gamer",
+				"emoji": "🎮",
+				"role": "1031474470965215253"
+			},
+			{
+				"name": "Artist",
+				"emoji": "🎨",
+				"role": "1031474644693307434"
+			},
+			{
+				"name": "Sports",
+				"emoji": "⚽",
+				"role": "1031474921769021482"
+			},
+			{
+				"name": "Musician",
+				"emoji": "🎶",
+				"role": "1032980123722461264"
+			},
+			{
+				"name": "Programmer",
+				"emoji": "🖥️",
+				"role": "1036884244322078770"
+			}
+		]
+	}
 }
