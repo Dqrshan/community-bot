@@ -23,6 +23,7 @@
 		"@sapphire/utilities": "^3.11.0",
 		"clever-chat": "^8.0.1",
 		"common-tags": "^1.8.2",
+		"cron": "^2.3.0",
 		"discord.js": "^14.7.1",
 		"dokdo": "^0.6.2",
 		"dotenv": "^16.0.3",
