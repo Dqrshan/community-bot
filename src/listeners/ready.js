@@ -3,6 +3,7 @@ const { blue, gray, green, magenta, magentaBright, white, yellow } = require('co
 const { ActivityType, AttachmentBuilder } = require('discord.js');
 const { joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
 const { CronJob } = require('cron');
+const { owners } = require('../config.json');
 
 const dev = process.env.NODE_ENV !== 'production';
 
@@ -84,7 +85,9 @@ class UserEvent extends Listener {
 			async () => {
 				const channel = this.container.client.channels.cache.get('1089230317430247495');
 				const file = new AttachmentBuilder('data/database.sqlite', { name: 'database.sqlite' });
-				await channel.send({ content: `Backup: \`${new Date().toString()}\``, files: [file] }).catch(() => {});
+				await channel
+					.send({ content: `${owners.map((o) => `<@!${o}>`).join(', ')} | Database Backup | \`${new Date().toString()}\``, files: [file] })
+					.catch(() => {});
 				this.container.client.logger.debug(`Sent Database Backup [${new Date().toString()}]`);
 			},
 			null,
