@@ -11,7 +11,7 @@ class MessageDelete extends Listener {
 	 * @param {import('discord.js').Message} msg
 	 */
 	async run(msg) {
-		if (msg.system) return;
+		if (msg.system || msg.author.bot || msg.webhookId || !msg.guild) return;
 
 		await msg.client.data.snipes.set(msg.channelId, {
 			message: msg.id,

@@ -10,7 +10,7 @@ class RuleCommand extends Command {
 	constructor(context, options) {
 		super(context, {
 			...options,
-			description: 'Rule tags',
+			description: 'Rule tags, straight up coming from <#1083272137021866045>',
 			aliases: ['rules', 'r'],
 			cooldownDelay: 1000
 		});

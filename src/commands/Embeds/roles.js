@@ -1,5 +1,4 @@
 const { Command } = require('@sapphire/framework');
-const { stripIndents } = require('common-tags');
 const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
 const {
 	roles: { activity, grade, school }
@@ -9,15 +8,13 @@ class TestCommand extends Command {
 	constructor(context, options) {
 		super(context, {
 			...options,
-			preconditions: ['OwnerOnly']
+			preconditions: ['OwnerOnly', 'GuildOnly']
 		});
 	}
 	/**
-	 *
 	 * @param {import('discord.js').Message} msg
-	 * @param {import('@sapphire/framework').Args} args
 	 */
-	async messageRun(msg, args) {
+	async messageRun(msg) {
 		const base = new EmbedBuilder()
 			.setColor('Blurple')
 			.setImage(`https://singlecolorimage.com/get/5865f2/320x20`)

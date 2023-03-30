@@ -16,9 +16,9 @@ class InteractionCreate extends Listener {
 	 */
 	async run(ctx) {
 		if (ctx.user.bot || ctx.user.system || !ctx.guild) return;
-		await ctx.deferReply({ ephemeral: true, fetchReply: true }).catch(() => {});
 		if (ctx.isButton()) {
 			if (ctx.customId.startsWith('a-')) {
+				await ctx.deferReply({ ephemeral: true, fetchReply: true }).catch(() => {});
 				const id = ctx.customId.replace('a-', '');
 				const role = ctx.guild.roles.cache.get(id);
 				if (!role) {
@@ -47,6 +47,7 @@ class InteractionCreate extends Listener {
 					return;
 				}
 			} else if (ctx.customId.startsWith('g-')) {
+				await ctx.deferReply({ ephemeral: true, fetchReply: true }).catch(() => {});
 				const id = ctx.customId.replace('g-', '');
 				const role = ctx.guild.roles.cache.get(id);
 				if (!role) {
@@ -78,6 +79,7 @@ class InteractionCreate extends Listener {
 		}
 
 		if (ctx.isStringSelectMenu() && ctx.customId === 'SCHOOL') {
+			await ctx.deferReply({ ephemeral: true, fetchReply: true }).catch(() => {});
 			if (ctx.member.roles.cache.some((r) => r.name.toLowerCase().includes('alumnus'))) {
 				await ctx.editReply({
 					content: 'You cannot add school roles!'

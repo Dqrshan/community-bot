@@ -29,11 +29,17 @@ class UserPrecondition extends AllFlowsPrecondition {
 	 * @param {import('discord.js').GuildMember} member
 	 */
 	doStaffCheck(member) {
-		return member.roles.cache.some((r) => r.name.toLowerCase().includes('staff')) || owners.includes(member.user.id)
+		return member.roles.cache.some((r) => r.name.toLowerCase().includes('staff'))
 			? this.ok()
-			: this.error({ message: this.#message })
+			: this.doOwnerCheck()
 			? this.ok()
 			: this.error({ message: this.#message });
+	}
+	/**
+	 * @param {import('discord.js').GuildMember} member
+	 */
+	doOwnerCheck(member) {
+		return owners.includes(member.user.id);
 	}
 }
 
