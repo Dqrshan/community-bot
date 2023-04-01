@@ -17,8 +17,9 @@ class SnipeCommand extends Command {
 	 */
 	async messageRun(msg, args) {
 		const index = await args.pick('integer').catch(() => 1);
+		const channel = await args.pick('channel').catch(() => msg.channel);
 
-		const snipes = msg.client.data.snipes.get(msg.channelId);
+		const snipes = msg.client.data.snipes.get(channel.id);
 		if (!snipes) return msg.reply('Nothing to snipe!');
 
 		const sniped = snipes[index - 1];
@@ -35,7 +36,7 @@ class SnipeCommand extends Command {
 				iconURL: user.displayAvatarURL()
 			})
 			.setThumbnail(member ? member.displayAvatarURL() : user.displayAvatarURL())
-			.setTitle(`Deleted <t:${Math.round(timestamp / 1000)}:R>`)
+			.setTitle(`Deleted${channel.id === msg.channelId ? '' : ` in <#${channel.id}>`} <t:${Math.round(timestamp / 1000)}:R>`)
 			.setFooter({
 				text: `Message ID: ${message} | ${index}/${snipes.length}`
 			});
@@ -51,15 +52,19 @@ class SnipeCommand extends Command {
 		const rawEs = [];
 		embeds.forEach((em) => rawEs.push(new EmbedBuilder(em)));
 
-		await msg.reply({
-			embeds: [embed]
-		});
+		const i = await msg
+			.reply({
+				embeds: [embed]
+			})
+			.catch(() => {});
 
 		if (rawEs.length) {
-			msg.channel.send({
-				embeds: rawEs,
-				content: 'Sniped Embeds'
-			});
+			await i
+				.reply({
+					embeds: rawEs,
+					content: 'Sniped Embeds'
+				})
+				.catch(() => {});
 		}
 	}
 }
