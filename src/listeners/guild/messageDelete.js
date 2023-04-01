@@ -1,4 +1,6 @@
 const { Listener } = require('@sapphire/framework');
+const axios = require('axios');
+const cheerio = require('cheerio');
 
 class MessageDelete extends Listener {
 	constructor(context, options = {}) {
@@ -13,12 +15,40 @@ class MessageDelete extends Listener {
 	async run(msg) {
 		if (msg.system || msg.author.bot || msg.webhookId || !msg.guild) return;
 
+		let gif = null;
+		const regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/;
+		let url = msg.content.match(regex);
+		if (/https?:\/\/tenor.com\/view\/[^ ]*/.test(url)) {
+			const response = await axios.get(url[0]).catch(() => null);
+			if (response) {
+				const $ = cheerio.load(response.data);
+				const src = $('meta[property="og:url"]', 'head').attr('content');
+				if (src) gif = src;
+			}
+		} else if (url) {
+			url = url[0];
+			const response = await axios.get(url).catch(() => null);
+			if (response) {
+				const mimeType = response.headers['content-type'];
+				if (mimeType.startsWith('image/')) gif = url;
+			}
+		}
+
+		const attachments = [];
+		if (gif) {
+			attachments.push(gif);
+		}
+
+		if (msg.attachments.size) {
+			attachments.push(msg.attachments.map((a) => a.proxyURL));
+		}
+
 		await msg.client.data.snipes.set(msg.channelId, {
 			message: msg.id,
 			content: msg.content,
 			author: msg.author.id,
-			attachments: msg.attachments.size === 0 ? [] : msg.attachments.map((a) => a.proxyURL),
-			embeds: msg.embeds.length ? msg.embeds.map((e) => e.toJSON()) : [],
+			attachments,
+			embeds: gif ? [] : msg.embeds.length ? msg.embeds.map((e) => e.toJSON()) : [],
 			timestamp: Date.now()
 		});
 	}
