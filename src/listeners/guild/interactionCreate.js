@@ -3,6 +3,8 @@ const {
 	roles: { grade, school }
 } = require('../../config.json');
 
+const styles = ['primary', 'secondary', 'success', 'danger'];
+
 class InteractionCreate extends Listener {
 	constructor(context, options) {
 		super(context, {
@@ -16,7 +18,15 @@ class InteractionCreate extends Listener {
 	 */
 	async run(ctx) {
 		if (ctx.user.bot || ctx.user.system || !ctx.guild) return;
+
 		if (ctx.isButton()) {
+			if (styles.includes(ctx.customId)) {
+				await ctx.deferReply({ ephemeral: true, fetchReply: true }).catch(() => {});
+
+				await ctx.editReply({ content: 'lorenz is cool 😎' }).catch(() => {});
+				return;
+			}
+
 			if (ctx.customId.startsWith('a-')) {
 				await ctx.deferReply({ ephemeral: true, fetchReply: true }).catch(() => {});
 				const id = ctx.customId.replace('a-', '');
