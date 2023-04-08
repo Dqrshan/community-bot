@@ -31,7 +31,7 @@ class UserPrecondition extends AllFlowsPrecondition {
 	doStaffCheck(member) {
 		return member.roles.cache.some((r) => r.name.toLowerCase().includes('staff'))
 			? this.ok()
-			: this.doOwnerCheck()
+			: this.doOwnerCheck(member)
 			? this.ok()
 			: this.error({ message: this.#message });
 	}
