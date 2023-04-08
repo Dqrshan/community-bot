@@ -40,7 +40,7 @@ class MessageDelete extends Listener {
 		}
 
 		if (msg.attachments.size) {
-			attachments.push(msg.attachments.map((a) => a.proxyURL));
+			msg.attachments.map((a) => attachments.push(a.proxyURL));
 		}
 
 		await msg.client.data.snipes.set(msg.channelId, {
