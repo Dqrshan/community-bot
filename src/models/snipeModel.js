@@ -40,7 +40,8 @@ class Snipes {
 				author: raw.author,
 				attachments: raw.attachments,
 				embeds: raw.embeds,
-				timestamp: raw.timestamp
+				timestamp: raw.timestamp,
+				reference: raw.reference
 			});
 
 			this.data.set(f.channel, data);
@@ -57,7 +58,8 @@ class Snipes {
 			content: data.content,
 			attachments: data.attachments,
 			embeds: data.embeds,
-			timestamp: data.timestamp
+			timestamp: data.timestamp,
+			reference: data.reference
 		});
 		this.data.set(channel, raw);
 

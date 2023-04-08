@@ -1,5 +1,5 @@
 const { Command } = require('@sapphire/framework');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 
 class SnipeCommand extends Command {
 	constructor(context, options) {
@@ -25,7 +25,7 @@ class SnipeCommand extends Command {
 		const sniped = snipes[index - 1];
 		if (!sniped) return msg.reply(`There are only ${snipes.length} deleted message(s) in the database`);
 
-		const { message, content, author, attachments, embeds, timestamp } = sniped;
+		const { message, content, author, attachments, embeds, timestamp, reference } = sniped;
 
 		const user = await msg.client.users.fetch(author);
 		const member = await msg.guild.members.fetch(user.id);
@@ -40,7 +40,7 @@ class SnipeCommand extends Command {
 			.setFooter({
 				text: `Message ID: ${message} | ${index}/${snipes.length}`
 			});
-		if (content) embed.setDescription(content);
+		if (content) embed.setDescription(reference ? `╭ *replying to [message ↗️](${reference})*\n${content}` : content);
 		if (attachments.length === 1) embed.setImage(attachments[0]);
 		else if (attachments.length === 0) {
 		} else
@@ -52,9 +52,15 @@ class SnipeCommand extends Command {
 		const rawEs = [];
 		embeds.forEach((em) => rawEs.push(new EmbedBuilder(em)));
 
+		const link = new ButtonBuilder()
+			.setStyle(ButtonStyle.Link)
+			.setURL(`https://discord.com/channels/${msg.guildId}/${channel.id}/${message}`)
+			.setLabel('where was this message deleted?');
+
 		const i = await msg
 			.reply({
-				embeds: [embed]
+				embeds: [embed],
+				components: [new ActionRowBuilder().setComponents(link)]
 			})
 			.catch(() => {});
 

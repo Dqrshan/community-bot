@@ -16,6 +16,7 @@ class MessageDelete extends Listener {
 		if (msg.system || msg.author.bot || msg.webhookId || !msg.guild) return;
 
 		let gif = null;
+		let reference = null;
 		const regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/;
 		let url = msg.content.match(regex);
 		if (/https?:\/\/tenor.com\/view\/[^ ]*/.test(url)) {
@@ -40,7 +41,11 @@ class MessageDelete extends Listener {
 		}
 
 		if (msg.attachments.size) {
-			attachments.push(msg.attachments.map((a) => a.proxyURL));
+			msg.attachments.map((a) => attachments.push(a.proxyURL));
+		}
+
+		if (msg.reference) {
+			reference = (await msg.fetchReference()).url;
 		}
 
 		await msg.client.data.snipes.set(msg.channelId, {
@@ -49,7 +54,8 @@ class MessageDelete extends Listener {
 			author: msg.author.id,
 			attachments,
 			embeds: gif ? [] : msg.embeds.length ? msg.embeds.map((e) => e.toJSON()) : [],
-			timestamp: Date.now()
+			timestamp: Date.now(),
+			reference
 		});
 	}
 }
