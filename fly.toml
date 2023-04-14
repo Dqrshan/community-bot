@@ -1,8 +1,0 @@
-app = "lorenz"
-
-[build]
-  builder = "heroku/buildpacks:20"
-
-[[services]]
-  internal_port = 8080
-  protocol = "tcp"

@@ -27,9 +27,9 @@ class InteractionCreate extends Listener {
 				return;
 			}
 
-			if (ctx.customId.startsWith('a-')) {
+			if (ctx.customId.startsWith('a-') || ctx.customId.startsWith('p-')) {
 				await ctx.deferReply({ ephemeral: true, fetchReply: true }).catch(() => {});
-				const id = ctx.customId.replace('a-', '');
+				const id = ctx.customId.replace('a-', '').replace('p-', '');
 				const role = ctx.guild.roles.cache.get(id);
 				if (!role) {
 					await ctx
