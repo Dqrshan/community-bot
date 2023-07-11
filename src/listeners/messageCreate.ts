@@ -34,7 +34,7 @@ export default async function run(msg: Message) {
     }
     if (msg.content.startsWith(msg.client.prefix)) {
         const args = msg.content.slice(msg.client.prefix.length).split(/ +/g);
-        const c = args.shift();
+        const c = args.shift()?.toLowerCase();
 
         if (!c) return;
 
