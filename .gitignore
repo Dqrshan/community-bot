@@ -1,6 +1,5 @@
-/node_modules/
+node_modules/
+dist/
 .env
-Hub.zip
 package-lock.json
-/data/
-/src/local/
+src/prisma/database.sqlite

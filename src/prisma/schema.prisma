@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:database.sqlite"
+}
+
+model afk {
+  user      String
+  guild     String
+  reason    String?  @default("AFK")
+  timestamp BigInt
+
+  @@id([guild, user])
+  @@map("afk_data")
+}
+
+model mentions {
+  user      String
+  guild     String
+  mentions  String
+
+  @@id([guild, user])
+  @@map("mention_data")
+}
+
+model snipes {
+  channel   String   @id
+  data      String
+  timestamp BigInt
+
+  @@map("snipes_data")
+}

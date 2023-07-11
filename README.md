@@ -1,5 +1,7 @@
 # Bangalore Hub Utility & Helper
 
+> Generated from [Dqrshan/Bot-Framework](https://github.com/Dqrshan/Bot-Framework)
+
 Open source code of "**B'lore Utils**" bot.
 
 ## Join us!
@@ -23,4 +25,4 @@ npm run start
 
 ## Developer
 
-[![Lorenz#6933](https://lanyard.cnrad.dev/api/838620835282812969?idleMessage=https%3A%2F%2Fdarshan.studio%2F)](https://discord.com/users/838620835282812969)
+[`@l.orenz`](https://discord.com/users/838620835282812969) on Discord
