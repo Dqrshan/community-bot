@@ -17,6 +17,7 @@
 		"common-tags": "^1.8.2",
 		"consola": "^2.15.3",
 		"cron": "^2.3.1",
+		"discord-debug": "^2.1.1",
 		"discord.js": "^14.8.0",
 		"dotenv": "^16.0.3",
 		"emoji-regex": "^10.2.1",

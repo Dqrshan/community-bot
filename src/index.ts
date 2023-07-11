@@ -5,6 +5,7 @@ import { Client, Collection, GatewayIntentBits, Partials } from "discord.js";
 import consola from "consola";
 import prisma from "./prisma/prisma";
 import { prefix } from "./config";
+import { Debugger } from "discord-debug";
 
 config();
 
@@ -25,9 +26,17 @@ const client = new Client({
 });
 
 client.console = consola;
-client.commands = new Collection();
 client.prefix = prefix;
 client.prisma = prisma;
+client.commands = new Collection();
+client.debugger = new Debugger(client, {
+    registerApplicationCommands: false,
+    loadDefaultListeners: {
+        message: true,
+        interaction: false
+    },
+    themeColor: "#5865f2"
+});
 
 const loadEvents = async (client: Client) => {
     client.console.info("Loading events..");
@@ -45,11 +54,11 @@ const loadEvents = async (client: Client) => {
     client.console.success(`Listening to ${count} events`);
 };
 
-// client.on("debug", console.debug);
-// client.on("warn", console.warn);
+client.on("debug", client.console.debug);
+client.on("warn", client.console.warn);
 
-// process.on("uncaughtException", () => console.error);
-// process.on("unhandledRejection", () => console.error);
+process.on("uncaughtException", client.console.error);
+process.on("unhandledRejection", client.console.error);
 
 Promise.all([loadEvents(client), loadCommands(client)]).then(() =>
     client.login(process.env.DISCORD_TOKEN)

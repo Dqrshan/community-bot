@@ -2,6 +2,7 @@ import consola from "consola";
 import type { Collection } from "discord.js";
 import type { Command } from "./lib/command";
 import type { PrismaClient } from "@prisma/client";
+import type { Debugger } from "discord-debug";
 
 export {};
 
@@ -19,6 +20,7 @@ declare module "discord.js" {
         commands: Collection<string, Command>;
         prefix: string;
         prisma: PrismaClient;
+        debugger: Debugger;
     }
 }
 
