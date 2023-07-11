@@ -1,16 +1,17 @@
 import type { Message } from "discord.js";
 import type { Command } from "../../lib/command";
-import { isThenable } from '../../lib/isThenable';
+import { isThenable } from "../../lib/isThenable";
 import { inspect } from "util";
 
 const evalCommand: Command = {
     name: "eval",
     description: "Evaluate a javascript code",
     ownerOnly: true,
+    aliases: ["js", "ev"],
     messageRun: async (msg: Message, args: string[] | undefined) => {
         if (!args || !args.length) {
             msg.reply({
-                content: "Please provide a code to eval!",
+                content: "Please provide a code to eval!"
             });
             return;
         }
@@ -18,7 +19,7 @@ const evalCommand: Command = {
 
         const { result, success } = await Eval(msg, code, {
             async: code.includes("await") || code.includes("return"),
-            depth: 2,
+            depth: 2
         });
 
         const output = success
@@ -28,12 +29,12 @@ const evalCommand: Command = {
         if (output.length > 2000) {
             return msg.reply({
                 content: "Output was too long.. sent the result as a file",
-                files: [{ attachment: Buffer.from(output), name: "output.js" }],
+                files: [{ attachment: Buffer.from(output), name: "output.js" }]
             });
         }
 
         return msg.reply({ content: output });
-    },
+    }
 };
 
 const Eval = async (
@@ -57,12 +58,12 @@ const Eval = async (
         result = error;
         success = false;
     }
-    
+
     if (isThenable(result)) result = await result;
-    
+
     if (typeof result !== "string") {
         result = inspect(result, {
-            depth: flags.depth,
+            depth: flags.depth
         });
     }
 
