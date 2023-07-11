@@ -9,7 +9,7 @@ export const databaseCh = "1089230317430247495";
 export const voiceCh = "1083327348788695090";
 
 export const links = {
-    rules: "https://discord.com/channels/1023702510730494012/1075735310736035900/1075737635408072794",
+    rules: "https://discord.com/channels/1023702510730494012/1083272137021866045",
     links: "https://discord.com/channels/1023702510730494012/1075735310736035900/1075737922113908747",
     website: "https://lorenz1.gitbook.io/bangalore-hub",
     topgg: "https://top.gg/servers/1023702510730494012/vote",
