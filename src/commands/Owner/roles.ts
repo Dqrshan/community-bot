@@ -4,7 +4,7 @@ import {
     ButtonStyle,
     EmbedBuilder,
     Message,
-    StringSelectMenuBuilder,
+    StringSelectMenuBuilder
 } from "discord.js";
 import { Command } from "../../lib/command";
 import { gradeRoles, activtyRoles, schoolRoles, pingRoles } from "../../config";
@@ -28,7 +28,7 @@ const roles: Command = {
             .setFooter({
                 text: "You can only select one role, open a ticket to change",
                 iconURL:
-                    "https://www.iconsdb.com/icons/preview/color/5865F2/info-3-xxl.png",
+                    "https://www.iconsdb.com/icons/preview/color/5865F2/info-3-xxl.png"
             });
 
         const e2 = EmbedBuilder.from(base)
@@ -41,12 +41,12 @@ const roles: Command = {
             .setFooter({
                 text: "You can select multiple roles",
                 iconURL:
-                    "https://www.iconsdb.com/icons/preview/color/5865F2/info-3-xxl.png",
+                    "https://www.iconsdb.com/icons/preview/color/5865F2/info-3-xxl.png"
             });
 
         const e3 = EmbedBuilder.from(base)
             .setTitle("School Roles")
-            .setImage(`https://singlecolorimage.com/get/5865f2/369x20`)
+            .setImage(`https://singlecolorimage.com/get/5865f2/369x5`)
             .setDescription(
                 "Pick your school roles below! If your school role isn't shown, open a ticket in <#1031159883673911336>."
             );
@@ -77,7 +77,7 @@ const roles: Command = {
             .setFooter({
                 text: "You can select multiple roles",
                 iconURL:
-                    "https://www.iconsdb.com/icons/preview/color/5865F2/info-3-xxl.png",
+                    "https://www.iconsdb.com/icons/preview/color/5865F2/info-3-xxl.png"
             });
         const b3 = pingRoles.map((r) =>
             new ButtonBuilder()
@@ -94,7 +94,7 @@ const roles: Command = {
                 schoolRoles.map((r) => {
                     return {
                         label: `${getRoleName(msg, r)!}`,
-                        value: r,
+                        value: r
                     };
                 })
             );
@@ -103,30 +103,30 @@ const roles: Command = {
             embeds: [e1],
             components: [
                 new ActionRowBuilder<ButtonBuilder>().setComponents(b1),
-                new ActionRowBuilder<ButtonBuilder>().setComponents(b12!),
-            ],
+                new ActionRowBuilder<ButtonBuilder>().setComponents(b12!)
+            ]
         });
         await msg.channel.send({
             embeds: [e2],
             components: [
-                new ActionRowBuilder<ButtonBuilder>().setComponents(b2),
-            ],
+                new ActionRowBuilder<ButtonBuilder>().setComponents(b2)
+            ]
         });
         await msg.channel.send({
             embeds: [e4],
             components: [
-                new ActionRowBuilder<ButtonBuilder>().setComponents(b3),
-            ],
+                new ActionRowBuilder<ButtonBuilder>().setComponents(b3)
+            ]
         });
         await msg.channel.send({
             embeds: [e3],
             components: [
                 new ActionRowBuilder<StringSelectMenuBuilder>().setComponents(
                     menu
-                ),
-            ],
+                )
+            ]
         });
-    },
+    }
 };
 
 export default roles;
