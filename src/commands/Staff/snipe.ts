@@ -6,7 +6,7 @@ import {
     ActionRowBuilder,
     Message
 } from "discord.js";
-import Snipes, { snipeObject } from "../../utils/snipes";
+import Snipes, { snipeObject } from "../../lib/snipes";
 
 const snipe: Command = {
     name: "snipe",

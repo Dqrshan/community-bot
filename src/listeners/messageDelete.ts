@@ -1,8 +1,15 @@
 import { Message } from "discord.js";
-import Snipes from "../utils/snipes";
+import Snipes from "../lib/snipes";
 
 export default async function run(msg: Message) {
-    if (msg.system || !msg.author || msg.author.bot || msg.webhookId || !msg.guild) return;
+    if (
+        msg.system ||
+        !msg.author ||
+        msg.author.bot ||
+        msg.webhookId ||
+        !msg.guild
+    )
+        return;
     let reference = null;
     const attachments: string[] = [];
     if (msg.attachments.size)
@@ -16,6 +23,6 @@ export default async function run(msg: Message) {
         attachments,
         embeds: msg.embeds.length ? msg.embeds.map((e) => e.toJSON()) : [],
         timestamp: Date.now(),
-        reference,
+        reference
     });
 }
