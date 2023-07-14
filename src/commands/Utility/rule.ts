@@ -12,6 +12,8 @@ const rule: Command = {
     name: "rule",
     aliases: ["rules", "r"],
     description: "Rule tags, straight up coming from <#1083272137021866045>",
+    usage: "[ruleNo] | [search]",
+    examples: ["1", "3", "spam", "nsfw", " "],
     messageRun: async (msg: Message, args?: string[]) => {
         const button = new ActionRowBuilder<ButtonBuilder>().setComponents(
             new ButtonBuilder()

@@ -1,20 +1,12 @@
-import type {
-    Message,
-    ApplicationCommandType,
-    PermissionResolvable,
-    Client
-} from "discord.js";
+import type { Message, PermissionResolvable, Client } from "discord.js";
 import { readdirSync } from "fs";
 
 export interface Command {
     name: string;
     description?: string;
     aliases?: string[];
-    type?:
-        | ApplicationCommandType.ChatInput
-        | ApplicationCommandType.Message
-        | ApplicationCommandType.User
-        | undefined;
+    usage?: string;
+    examples?: string[];
     permissions?: PermissionResolvable;
     category?: string;
     cooldown?: number | 1000;

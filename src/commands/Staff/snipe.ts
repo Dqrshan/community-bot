@@ -13,6 +13,8 @@ const snipe: Command = {
     aliases: ["s"],
     staffOnly: true,
     description: "Snipe deleted messages",
+    usage: "[index] [#channel]",
+    examples: ["15", "<#1031108420880842752>", "20 <#1031108420880842752>"],
     messageRun: async (msg: Message, args?: string[]) => {
         let index: number = 1;
         if (!args?.length) {

@@ -7,6 +7,8 @@ const urban: Command = {
     name: "urban",
     description: "Urban Dictionary",
     aliases: ["dictionary", "define"],
+    usage: "<query>",
+    examples: ["Darshan"],
     messageRun: async (msg, args) => {
         if (!args?.length) {
             msg.reply("Please input a query!");
@@ -15,7 +17,7 @@ const urban: Command = {
         msg.channel.sendTyping();
         const query = args.join(" ");
         const {
-            data: { list },
+            data: { list }
         } = await axios.get(
             `https://api.urbandictionary.com/v0/define?term=${encodeURIComponent(
                 query
@@ -38,12 +40,12 @@ const urban: Command = {
                     {
                         name: "Example",
                         value: clean(x.example) ?? "None",
-                        inline: true,
+                        inline: true
                     },
                     {
                         name: "Votes",
                         value: `👍 ${x.thumbs_up}・👎 ${x.thumbs_down}`,
-                        inline: true,
+                        inline: true
                     }
                 );
 
@@ -58,9 +60,9 @@ const urban: Command = {
             new ButtonBuilder()
                 .setStyle(ButtonStyle.Secondary)
                 .setCustomId("N")
-                .setEmoji("➡️"),
+                .setEmoji("➡️")
         ]);
-    },
+    }
 };
 
 export default urban;

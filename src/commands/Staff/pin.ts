@@ -6,6 +6,8 @@ const pin: Command = {
     name: "pin",
     description: "Pins a message",
     staffOnly: true,
+    usage: "[messageID] | [reply to message]",
+    examples: ["1234567890", " "],
     messageRun: async (msg, args) => {
         if (!msg.reference && !args?.length) {
             msg.reply({

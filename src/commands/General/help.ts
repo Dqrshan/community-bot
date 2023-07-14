@@ -6,6 +6,8 @@ const help: Command = {
     name: "help",
     description: "All supported & available commands",
     aliases: ["h"],
+    usage: "[commandName]",
+    examples: ["ping", " "],
     messageRun: async (msg: Message, args) => {
         if (args?.length) {
             const command =
@@ -35,6 +37,30 @@ const help: Command = {
                     name: "Staff Only",
                     value: "Yes",
                     inline: true
+                });
+            }
+            if (command.usage) {
+                embed
+                    .addFields({
+                        name: "Usage",
+                        value: `\`${msg.client.prefix}${command.name} ${command.usage}\``,
+                        inline: true
+                    })
+                    .setFooter({
+                        text: `[]: Optional, <>: Required, | denotes 'OR'`,
+                        iconURL: (msg.member as GuildMember).displayAvatarURL()
+                    });
+            }
+            if (command.examples?.length) {
+                embed.addFields({
+                    name: "Examples",
+                    value: command.examples
+                        .map(
+                            (ex) =>
+                                `\`${msg.client.prefix}${command.name} ${ex}\``
+                        )
+                        .join("\n"),
+                    inline: false
                 });
             }
             await msg.reply({ embeds: [embed] }).catch(() => {});
