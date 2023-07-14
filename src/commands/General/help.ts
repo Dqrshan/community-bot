@@ -56,8 +56,7 @@ const help: Command = {
                     name: "Examples",
                     value: command.examples
                         .map(
-                            (ex) =>
-                                `\`${msg.client.prefix}${command.name} ${ex}\``
+                            (ex) => `${msg.client.prefix}${command.name} ${ex}`
                         )
                         .join("\n"),
                     inline: false
