@@ -33,3 +33,10 @@ model snipes {
 
   @@map("snipes_data")
 }
+
+model settings {
+  guild String @id
+  ticketCount Int @default(0)
+
+  @@map("settings_data")
+}

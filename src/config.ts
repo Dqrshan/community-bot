@@ -8,6 +8,9 @@ export const guildId = "1023702510730494012";
 export const databaseCh = "1089230317430247495";
 export const voiceCh = "1083327348788695090";
 
+export const ticketCategory = "1129334365298626620";
+export const ticketLogs = "1095365181741215854";
+
 export const links = {
     rules: "https://discord.com/channels/1023702510730494012/1083272137021866045",
     links: "https://discord.com/channels/1023702510730494012/1075735310736035900/1075737922113908747",

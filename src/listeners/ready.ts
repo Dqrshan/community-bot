@@ -3,10 +3,13 @@ import {
     ActivityType,
     AttachmentBuilder,
     Client,
+    OverwriteType,
+    PermissionFlagsBits,
     TextChannel
 } from "discord.js";
-import { databaseCh } from "../config";
-import Snipes from "../utils/snipes";
+import { databaseCh, guildId, ticketCategory } from "../config";
+import Snipes from "../lib/snipes";
+import Ticket, { tickets } from "../lib/Ticket";
 
 export default async function run(client: Client) {
     // activity
@@ -26,6 +29,33 @@ export default async function run(client: Client) {
     // log info to console
     const { tag, id } = client.user!;
     client.console.success(`Logged in as ${tag} [${id}]`);
+
+    // load tickets
+    const server = client.guilds.cache.get(guildId);
+    const ticketChannels = server!.channels.cache
+        .filter(
+            (c) =>
+                c.parentId === ticketCategory &&
+                /ticket-\d+/.test(c.name) &&
+                !c
+                    .permissionsFor(server?.roles.everyone!)
+                    ?.has(PermissionFlagsBits.ViewChannel)
+        )
+        .map((c) => c as TextChannel);
+
+    for (const ticket of ticketChannels) {
+        const ticketAuthor = ticket.permissionOverwrites.cache.find(
+            (p) => p.type === OverwriteType.Member
+        )?.id;
+        if (!ticketAuthor) continue;
+        const t = new Ticket(
+            parseInt(ticket.name.split("-")[1] ?? "0"),
+            await client.users.fetch(ticketAuthor),
+            ticket,
+            ticket.topic!
+        );
+        tickets.set(ticketAuthor, t);
+    }
 
     // database backups
     const job = new CronJob(
