@@ -34,7 +34,7 @@ const pin: Command = {
             return;
         }
 
-        await m.pin(`Pinned by ${msg.author.username}`).catch(() => {});
+        await m.pin(`Pinned by @${msg.author.username}`).catch(() => {});
     }
 };
 
