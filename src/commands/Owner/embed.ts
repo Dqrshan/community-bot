@@ -56,7 +56,7 @@ const Ticket = async (msg: Message) => {
 const Roles = async (msg: Message) => {
     const base = new EmbedBuilder()
         .setColor("Blurple")
-        .setImage(`https://singlecolorimage.com/get/5865f2/320x20`)
+        .setImage(`https://singlecolorimage.com/get/5865f2/320x5`)
         .setThumbnail(msg.guild!.iconURL());
     const e1 = EmbedBuilder.from(base)
         .setTitle("Grade Roles")
