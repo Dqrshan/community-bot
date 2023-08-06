@@ -29,7 +29,7 @@ const avatar: Command = {
             : null;
 
         const base = new EmbedBuilder()
-            .setTitle(user.tag)
+            .setTitle(user.displayName)
             .setURL(`https://discord.com/users/${user.id}`)
             .setColor(member ? member.displayHexColor : "#2F3136")
             .setFooter({
