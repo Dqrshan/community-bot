@@ -27,10 +27,13 @@ const AFK: Command = {
                 .replaceAll(/@here/g, "here")
                 .replaceAll(/@&/g, "");
             msg.reply({ content: `You are now AFK. Reason: ${reason}` });
-            if (!msg.member!.displayName.startsWith("[AFK]"))
-                msg.member!.setNickname(
-                    `[AFK] ${msg.member!.displayName}`
-                ).catch(() => {});
+            const name = msg.member?.nickname
+                ? msg.member.nickname
+                : msg.member?.displayName
+                ? msg.member.displayName
+                : msg.author.displayName;
+            if (!name.startsWith("[AFK]"))
+                msg.member!.setNickname(`[AFK] ${name}`).catch(() => {});
 
             await msg.client.prisma.afk.create({
                 data: {
