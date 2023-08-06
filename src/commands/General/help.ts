@@ -95,7 +95,7 @@ const help: Command = {
             .addFields(
                 cats.map((c) => {
                     return {
-                        name: `${format(c.dir)} (${c.commands.size})`,
+                        name: `${c.dir} (${c.commands.size})`,
                         value: `${c.commands
                             .map((x) => `${x.name}`)
                             .join(", ")}`,
@@ -103,26 +103,10 @@ const help: Command = {
                     };
                 })
             )
-            .setColor("Blurple")
-            .setFooter({
-                text: `Requested by @${msg.author.username}`,
-                iconURL: (msg.member as GuildMember).displayAvatarURL()
-            });
+            .setColor("Blurple");
 
         await msg.reply({ embeds: [embed] }).catch(() => {});
     }
-};
-
-const format = (str: string) => {
-    const emojis = {
-        General: "🤖",
-        Owner: "👑",
-        Staff: "🛠️",
-        Tags: "🎟️",
-        Utility: "⚙️"
-    };
-    // @ts-ignore
-    return `\\${emojis[str] ?? "✅"} ${str}`;
 };
 
 export default help;
