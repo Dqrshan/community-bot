@@ -54,9 +54,7 @@ const loadEvents = async (client: Client) => {
     client.console.success(`Listening to ${count} events`);
 };
 
-client.on("debug", client.console.debug);
-client.on("warn", client.console.warn);
-
+client.on("error", client.console.error);
 process.on("uncaughtException", client.console.error);
 process.on("unhandledRejection", client.console.error);
 
