@@ -48,8 +48,9 @@ const snipe: Command = {
         const embed = new EmbedBuilder()
             .setColor("Blurple")
             .setAuthor({
-                name: user.tag,
-                iconURL: user.displayAvatarURL()
+                name: user.displayName,
+                iconURL: user.displayAvatarURL(),
+                url: `https://discord.com/users/${user.id}`
             })
             .setThumbnail(
                 member ? member.displayAvatarURL() : user.displayAvatarURL()
