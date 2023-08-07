@@ -1,9 +1,15 @@
-export const owners = ["838620835282812969", "806736235585732608"];
+export const owners = [
+    "838620835282812969",
+    "806736235585732608",
+    "815449659237335101"
+];
 export const staff = ["1035136945749237800"];
 
 export const prefix = "+";
 
 export const guildId = "1023702510730494012";
+
+export const aiChannel = "1138121964196732978";
 
 export const databaseCh = "1089230317430247495";
 export const voiceCh = "1083327348788695090";

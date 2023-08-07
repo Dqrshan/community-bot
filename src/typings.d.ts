@@ -10,6 +10,7 @@ declare global {
     namespace NodeJS {
         interface ProcessEnv {
             DISCORD_TOKEN: string;
+            AI_URL: string;
         }
     }
 }

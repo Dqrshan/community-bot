@@ -5,7 +5,7 @@ import {
     Message,
     TextChannel
 } from "discord.js";
-import { owners, prefix, staff } from "../config";
+import { aiChannel, owners, prefix, staff } from "../config";
 import { chunkify } from "../lib/utils";
 import { Pagination } from "../lib/pagination";
 import emojiRegex from "emoji-regex";
@@ -32,6 +32,8 @@ export default async function run(msg: Message) {
         });
         return;
     }
+
+    // prefix commands
     if (msg.content.startsWith(msg.client.prefix)) {
         const args = msg.content.slice(msg.client.prefix.length).split(/ +/g);
         const c = args.shift()?.toLowerCase();
@@ -272,6 +274,32 @@ export default async function run(msg: Message) {
         for (const match of msg.content.matchAll(/\d{15,}/g)) {
             const eId = match[0];
             await msg.react(eId).catch(() => {});
+        }
+    }
+
+    // ai
+    if (msg.channelId === aiChannel) {
+        const query = msg.cleanContent;
+        if (!query) return;
+
+        await msg.channel.sendTyping();
+        try {
+            const res = await fetch(process.env.AI_URL!, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    query
+                })
+            });
+            if (!res.ok) return await msg.react("⚠️");
+            const data = await res.json();
+            if (data.response)
+                await msg.reply(data.response.replaceAll("\n\n", "\n"));
+        } catch (error) {
+            msg.client.console.error(error);
+            await msg.react("⚠️");
         }
     }
 }
