@@ -282,6 +282,8 @@ export default async function run(msg: Message) {
         const query = msg.cleanContent;
         if (!query) return;
 
+        if (query.length < 3) return;
+
         await msg.channel.sendTyping();
         try {
             const res = await fetch(process.env.AI_URL!, {
@@ -296,7 +298,14 @@ export default async function run(msg: Message) {
             if (!res.ok) return await msg.react("⚠️");
             const data = await res.json();
             if (data.response)
-                await msg.reply(data.response.replaceAll("\n\n", "\n"));
+                await msg.reply({
+                    content: data.response.replaceAll("\n\n", "\n"),
+                    allowedMentions: {
+                        roles: [],
+                        users: [],
+                        repliedUser: true
+                    }
+                });
         } catch (error) {
             msg.client.console.error(error);
             await msg.react("⚠️");
