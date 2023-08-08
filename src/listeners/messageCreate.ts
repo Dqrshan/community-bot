@@ -284,6 +284,22 @@ export default async function run(msg: Message) {
 
         if (query.length < 3) return;
 
+        const ms = await msg.channel.messages.fetch({
+            limit: 5
+        });
+        const messages = ms
+            .filter(
+                (m) =>
+                    (m.author.id === msg.author.id || m.author.bot) &&
+                    m.content.length > 3
+            )
+            .map((m) => ({
+                role: m.author.bot ? "assistant" : "user",
+                content: m.content
+            }));
+
+        messages.reverse();
+
         await msg.channel.sendTyping();
         try {
             const res = await fetch(process.env.AI_URL!, {
@@ -292,11 +308,12 @@ export default async function run(msg: Message) {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    query
+                    messages
                 })
             });
             if (!res.ok) return await msg.react("⚠️");
             const data = await res.json();
+
             if (data.response)
                 await msg.reply({
                     content: data.response.replaceAll("\n\n", "\n"),
@@ -310,6 +327,7 @@ export default async function run(msg: Message) {
             msg.client.console.error(error);
             await msg.react("⚠️");
         }
+        msg.channel.messages.cache.clear();
     }
 }
 
