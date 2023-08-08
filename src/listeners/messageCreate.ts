@@ -3,7 +3,8 @@ import {
     ButtonStyle,
     EmbedBuilder,
     Message,
-    TextChannel
+    TextChannel,
+    verifyString
 } from "discord.js";
 import { aiChannel, owners, prefix, staff } from "../config";
 import { chunkify } from "../lib/utils";
@@ -287,12 +288,21 @@ export default async function run(msg: Message) {
         const ms = await msg.channel.messages.fetch({
             limit: 5
         });
-        const messages = ms
-            .filter(
-                (m) =>
-                    (m.author.id === msg.author.id || m.author.bot) &&
-                    m.content.length > 3
+
+        const filter = async (m: Message) => {
+            if (m.author.id === msg.author.id) return true;
+            if (m.author.bot) return true;
+            if (m.content.length < 3) return true;
+            if (
+                m.author.bot &&
+                (await msg.fetchReference()).author.id === msg.author.id
             )
+                return true;
+            return false;
+        };
+
+        const messages = ms
+            .filter(async (m) => await filter(m))
             .map((m) => ({
                 role: m.author.bot ? "assistant" : "user",
                 content: m.content
@@ -311,18 +321,37 @@ export default async function run(msg: Message) {
                     messages
                 })
             });
+
             if (!res.ok) return await msg.react("⚠️");
             const data = await res.json();
 
-            if (data.response)
+            const allowedMentions = {
+                roles: [],
+                users: [],
+                repliedUser: true
+            };
+
+            if (data.response) {
+                let r = data.response.replaceAll("\n\n", "\n");
+                if (r.length > 2000) {
+                    const chunks = splitContent(r, 2000);
+
+                    chunks.forEach(async (chunk, index) => {
+                        const fn = index === 0 ? msg.reply : msg.channel.send;
+
+                        await fn.call(msg, {
+                            content: chunk,
+                            allowedMentions
+                        });
+                    });
+                    return;
+                }
                 await msg.reply({
                     content: data.response.replaceAll("\n\n", "\n"),
-                    allowedMentions: {
-                        roles: [],
-                        users: [],
-                        repliedUser: true
-                    }
+                    allowedMentions
                 });
+                return;
+            }
         } catch (error) {
             msg.client.console.error(error);
             await msg.react("⚠️");
@@ -337,4 +366,35 @@ const botMention = (msg: Message) => {
         `<@${msg.client.user.id}>`,
         `<@&${msg.guild!.roles.botRoleFor(msg.client.user)?.id}>`
     ].some((x) => msg.content === x);
+};
+
+const splitContent = (content: string, limit: number) => {
+    const char = [new RegExp(`.{1,${limit}}`, "g"), "\n"];
+    const text = verifyString(content);
+    if (text.length <= limit) return [text];
+    let splitText = [text];
+
+    while (char.length > 0 && splitText.some((elem) => elem.length > limit)) {
+        const currentChar = char.shift();
+        if (currentChar instanceof RegExp) {
+            splitText = splitText
+                .flatMap((chunk) => chunk.match(currentChar))
+                .filter((value) => value !== null) as string[];
+        } else {
+            splitText = splitText.flatMap((chunk) => chunk.split(currentChar!));
+        }
+    }
+    if (splitText.some((elem) => elem.length > limit)) {
+        throw new RangeError("SPLIT_MAX_LEN");
+    }
+    const messages = [];
+    let msg = "";
+    for (const chunk of splitText) {
+        if (msg && (msg + char + chunk).length > limit) {
+            messages.push(msg);
+            msg = "";
+        }
+        msg += (msg && msg !== "" ? char : "") + chunk;
+    }
+    return messages.concat(msg).filter((m) => m);
 };
