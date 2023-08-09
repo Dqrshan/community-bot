@@ -3,15 +3,16 @@ import {
     ButtonStyle,
     EmbedBuilder,
     Message,
-    TextChannel,
-    verifyString
+    TextChannel
 } from "discord.js";
 import { aiChannel, owners, prefix, staff } from "../config";
-import { chunkify } from "../lib/utils";
+import { chunkify, splitContent } from "../lib/utils";
 import { Pagination } from "../lib/pagination";
 import emojiRegex from "emoji-regex";
 import ms from "ms";
 import { Mention } from "../typings";
+
+const messageQueue: Message[] = [];
 
 export default async function run(msg: Message) {
     if (msg.author.bot || msg.author.system || !msg.guild || !msg.member)
@@ -280,6 +281,25 @@ export default async function run(msg: Message) {
 
     // ai
     if (msg.channelId === aiChannel) {
+        messageQueue.push(msg);
+        if (messageQueue.length === 1) {
+            await processQueue();
+        }
+    }
+}
+
+const botMention = (msg: Message) => {
+    return [
+        `<@!${msg.client.user.id}>`,
+        `<@${msg.client.user.id}>`,
+        `<@&${msg.guild!.roles.botRoleFor(msg.client.user)?.id}>`
+    ].some((x) => msg.content === x);
+};
+
+const processQueue = async () => {
+    while (messageQueue.length > 0) {
+        const msg = messageQueue[0];
+
         const query = msg.cleanContent;
         if (!query) return;
 
@@ -322,7 +342,7 @@ export default async function run(msg: Message) {
                 })
             });
 
-            if (!res.ok) return await msg.react("⚠️");
+            if (!res.ok) return await msg.react("⚠️").catch(() => {});
             const data = await res.json();
 
             const allowedMentions = {
@@ -332,69 +352,37 @@ export default async function run(msg: Message) {
             };
 
             if (data.response) {
-                let r = data.response.replaceAll("\n\n", "\n");
+                let r = data.response;
                 if (r.length > 2000) {
-                    const chunks = splitContent(r, 2000);
-
-                    chunks.forEach(async (chunk, index) => {
-                        const fn = index === 0 ? msg.reply : msg.channel.send;
-
-                        await fn.call(msg, {
-                            content: chunk,
-                            allowedMentions
-                        });
-                    });
-                    return;
+                    const strs = splitContent(r, 2000);
+                    for (const str of strs) {
+                        if (strs.indexOf(str) === 0) {
+                            await msg
+                                .reply({ content: str, allowedMentions })
+                                .catch(() => {});
+                            continue;
+                        } else {
+                            await msg.channel
+                                .send({ content: str, allowedMentions })
+                                .catch(() => {});
+                        }
+                    }
+                } else {
+                    await msg
+                        .reply({ content: r, allowedMentions })
+                        .catch(() => {});
                 }
-                await msg.reply({
-                    content: data.response.replaceAll("\n\n", "\n"),
-                    allowedMentions
-                });
-                return;
             }
         } catch (error) {
             msg.client.console.error(error);
-            await msg.react("⚠️");
+            await msg.react("⚠️").catch(() => {});
         }
         msg.channel.messages.cache.clear();
-    }
-}
 
-const botMention = (msg: Message) => {
-    return [
-        `<@!${msg.client.user.id}>`,
-        `<@${msg.client.user.id}>`,
-        `<@&${msg.guild!.roles.botRoleFor(msg.client.user)?.id}>`
-    ].some((x) => msg.content === x);
-};
-
-const splitContent = (content: string, limit: number) => {
-    const char = [new RegExp(`.{1,${limit}}`, "g"), "\n"];
-    const text = verifyString(content);
-    if (text.length <= limit) return [text];
-    let splitText = [text];
-
-    while (char.length > 0 && splitText.some((elem) => elem.length > limit)) {
-        const currentChar = char.shift();
-        if (currentChar instanceof RegExp) {
-            splitText = splitText
-                .flatMap((chunk) => chunk.match(currentChar))
-                .filter((value) => value !== null) as string[];
-        } else {
-            splitText = splitText.flatMap((chunk) => chunk.split(currentChar!));
-        }
+        messageQueue.shift();
     }
-    if (splitText.some((elem) => elem.length > limit)) {
-        throw new RangeError("SPLIT_MAX_LEN");
+    // Process the next message in the queue, if any
+    if (messageQueue.length > 0) {
+        processQueue();
     }
-    const messages = [];
-    let msg = "";
-    for (const chunk of splitText) {
-        if (msg && (msg + char + chunk).length > limit) {
-            messages.push(msg);
-            msg = "";
-        }
-        msg += (msg && msg !== "" ? char : "") + chunk;
-    }
-    return messages.concat(msg).filter((m) => m);
 };
