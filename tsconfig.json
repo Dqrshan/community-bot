@@ -3,8 +3,8 @@
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
         "alwaysStrict": true,
-        "declaration": true,
-        "declarationMap": true,
+        "declaration": false,
+        "declarationMap": false,
         "esModuleInterop": true,
         "importHelpers": true,
         "incremental": true,
