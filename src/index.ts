@@ -37,6 +37,7 @@ client.debugger = new Debugger(client, {
     },
     themeColor: "#5865f2"
 });
+client.queue = [];
 
 const loadEvents = async (client: Client) => {
     client.console.info("Loading events..");

@@ -22,6 +22,7 @@ declare module "discord.js" {
         prefix: string;
         prisma: PrismaClient;
         debugger: Debugger;
+        queue: Message[];
     }
 }
 

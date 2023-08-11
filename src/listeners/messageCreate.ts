@@ -1,6 +1,7 @@
 import {
     ButtonBuilder,
     ButtonStyle,
+    Client,
     EmbedBuilder,
     Message,
     TextChannel
@@ -11,8 +12,6 @@ import { Pagination } from "../lib/pagination";
 import emojiRegex from "emoji-regex";
 import ms from "ms";
 import { Mention } from "../typings";
-
-const messageQueue: Message[] = [];
 
 export default async function run(msg: Message) {
     if (msg.author.bot || msg.author.system || !msg.guild || !msg.member)
@@ -281,9 +280,9 @@ export default async function run(msg: Message) {
 
     // ai
     if (msg.channelId === aiChannel) {
-        messageQueue.push(msg);
-        if (messageQueue.length === 1) {
-            await processQueue();
+        msg.client.queue.push(msg);
+        if (msg.client.queue.length === 1) {
+            await processQueue(msg.client);
         }
     }
 }
@@ -296,9 +295,9 @@ const botMention = (msg: Message) => {
     ].some((x) => msg.content === x);
 };
 
-const processQueue = async () => {
-    while (messageQueue.length > 0) {
-        const msg = messageQueue[0];
+const processQueue = async (client: Client) => {
+    while (client.queue.length > 0) {
+        const msg = client.queue[0];
 
         const query = msg.cleanContent;
         if (!query) return;
@@ -379,10 +378,10 @@ const processQueue = async () => {
         }
         msg.channel.messages.cache.clear();
 
-        messageQueue.shift();
+        client.queue.shift();
     }
     // Process the next message in the queue, if any
-    if (messageQueue.length > 0) {
-        processQueue();
+    if (client.queue.length > 0) {
+        processQueue(client);
     }
 };
