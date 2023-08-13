@@ -280,6 +280,8 @@ export default async function run(msg: Message) {
 
     // ai
     if (msg.channelId === aiChannel) {
+        if (!msg.content || msg.content.length === 0 || msg.content.length < 3)
+            return;
         msg.client.queue.push(msg);
         if (msg.client.queue.length === 1) {
             await processQueue(msg.client);
@@ -299,29 +301,18 @@ const processQueue = async (client: Client) => {
     while (client.queue.length > 0) {
         const msg = client.queue[0];
 
-        const query = msg.cleanContent;
-        if (!query) return;
-
-        if (query.length < 3) return;
-
         const ms = await msg.channel.messages.fetch({
             limit: 5
         });
 
-        const filter = async (m: Message) => {
-            if (m.author.id === msg.author.id) return true;
-            if (m.author.id === msg.client.user.id) return true;
-            if (m.content.length > 3) return true;
-            if (
-                m.author.bot &&
-                (await m.fetchReference()).author.id === msg.author.id
-            )
-                return true;
-            return false;
-        };
-
         const messages = ms
-            .filter(async (m) => await filter(m))
+            .filter(
+                (m) =>
+                    (m.author.id === msg.author.id && m.content.length >= 3) ||
+                    (m.author.id === msg.client.user.id &&
+                        m.reference &&
+                        m.mentions.users.first()?.id === msg.author.id)
+            )
             .map((m) => ({
                 role: m.author.bot ? "assistant" : "user",
                 content: m.content
@@ -382,7 +373,7 @@ const processQueue = async (client: Client) => {
 
         client.queue.shift();
     }
-    // Process the next message in the queue, if any
+
     if (client.queue.length > 0) {
         processQueue(client);
     }
