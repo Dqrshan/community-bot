@@ -310,11 +310,11 @@ const processQueue = async (client: Client) => {
 
         const filter = async (m: Message) => {
             if (m.author.id === msg.author.id) return true;
-            if (m.author.bot) return true;
-            if (m.content.length < 3) return true;
+            if (m.author.id === msg.client.user.id) return true;
+            if (m.content.length > 3) return true;
             if (
                 m.author.bot &&
-                (await msg.fetchReference()).author.id === msg.author.id
+                (await m.fetchReference()).author.id === msg.author.id
             )
                 return true;
             return false;
@@ -371,6 +371,8 @@ const processQueue = async (client: Client) => {
                         .reply({ content: r, allowedMentions })
                         .catch(() => {});
                 }
+            } else {
+                await msg.react("⚠️").catch(() => {});
             }
         } catch (error) {
             msg.client.console.error(error);
