@@ -310,8 +310,8 @@ const processQueue = async (client: Client) => {
                 (m) =>
                     (m.author.id === msg.author.id && m.content.length >= 3) ||
                     (m.author.id === msg.client.user.id &&
-                        m.reference &&
-                        m.mentions.users.first()?.id === msg.author.id)
+                        m.mentions.repliedUser &&
+                        m.mentions.repliedUser.id === msg.author.id)
             )
             .map((m) => ({
                 role: m.author.bot ? "assistant" : "user",
@@ -332,7 +332,11 @@ const processQueue = async (client: Client) => {
                 })
             });
 
-            if (!res.ok) return await msg.react("⚠️").catch(() => {});
+            if (!res.ok) {
+                client.queue.shift();
+                await msg.react("⚠️").catch(() => {});
+                return;
+            }
             const data = await res.json();
 
             const allowedMentions = {
@@ -370,11 +374,10 @@ const processQueue = async (client: Client) => {
             await msg.react("⚠️").catch(() => {});
         }
         msg.channel.messages.cache.clear();
-
         client.queue.shift();
     }
 
     if (client.queue.length > 0) {
-        processQueue(client);
+        await processQueue(client);
     }
 };
