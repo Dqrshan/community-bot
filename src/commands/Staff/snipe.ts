@@ -44,7 +44,9 @@ const snipe: Command = {
         } = sniped;
 
         const user = await msg.client.users.fetch(author!);
-        const member = await msg.guild?.members.fetch(user.id);
+        const member = await msg.guild?.members
+            .fetch(user.id)
+            .catch(() => null);
         const embed = new EmbedBuilder()
             .setColor("Blurple")
             .setAuthor({
