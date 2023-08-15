@@ -4,12 +4,16 @@ import {
     ButtonStyle,
     EmbedBuilder,
     Message,
-    StringSelectMenuBuilder
+    StringSelectMenuBuilder,
+    underscore
 } from "discord.js";
 import { Command } from "../../lib/command";
 import { gradeRoles, activtyRoles, schoolRoles, pingRoles } from "../../config";
+import { stripIndents } from "common-tags";
 
-const subs = ["roles", "ticket"];
+const dot = "<:Dot:1075724409496678401>";
+
+const subs = ["roles", "ticket", "about"];
 
 const command: Command = {
     name: "embed",
@@ -24,6 +28,9 @@ const command: Command = {
                 break;
             case "ticket":
                 await Ticket(msg);
+                break;
+            case "about":
+                await About(msg);
                 break;
             default:
                 msg.reply(
@@ -51,6 +58,109 @@ const Ticket = async (msg: Message) => {
 
     msg.channel.send({ embeds: [embed], components: [button] });
     await msg.delete().catch(() => {});
+};
+
+const About = async (msg: Message) => {
+    const base = new EmbedBuilder().setColor("Blurple");
+    const about = EmbedBuilder.from(base).setImage(
+        "https://cdn.discordapp.com/attachments/1036666970235490394/1140983448287318086/1.png"
+    ).setDescription(stripIndents`
+### Welcome to the ${underscore("Bangalore Hub")} Discord server!
+
+Imagine a student hub where you can spend time, make new friends, and hangout!
+    `);
+
+    const info = EmbedBuilder.from(base).setImage(
+        "https://cdn.discordapp.com/attachments/1036666970235490394/1140983448509628497/2.png"
+    ).setDescription(stripIndents`
+### INFO
+Most channels are self-explanatory and have respective topics. 
+The main ones are listed below with a short description.
+### MAIN
+${dot} ⁠${getChannel("about", msg)} About this server.
+${dot} ${getChannel("rules", msg)} Rules & Guidelines.
+${dot} ${getChannel("news", msg)} Updates & Announcements regarding this server.
+### COMMUNITY
+${dot} ${getChannel(
+        "leaderboard",
+        msg
+    )} Refreshing list of top 10 active members.
+${dot} ${getChannel("self-roles", msg)} User selectable roles.
+${dot} ${getChannel("starboard", msg)} Starred messages appear here.
+${dot} ${getChannel(
+        "suggestions",
+        msg
+    )} Suggest & Vote suggestions to improve the server.
+${dot} ${getChannel("qotw", msg)} **Q**uestion **O**f **T**he **W**eek.
+### SUPPORT
+Create a ticket in ${getChannel(
+        "support",
+        msg
+    )} for queries / help & support / etc.
+    `);
+
+    const roles = EmbedBuilder.from(base).setImage(
+        "https://cdn.discordapp.com/attachments/1036666970235490394/1140983448803233922/3.png"
+    ).setDescription(stripIndents`
+### MAIN
+${dot} ${getRole(
+        "Lorenz",
+        msg
+    )} Technoking of Bangalore Hub aka <@838620835282812969>.
+${dot} ${getRole(
+        "Owner",
+        msg
+    )} Owners - <@838620835282812969> & <@433180057675104257>.
+${dot} ${getRole("Staff", msg)} Responsible & respected Staff.
+${dot} ${getRole("Boost", msg)} Hoisted role for Discord Nitro server boosters.
+${dot} ${getRole(
+        "Honoured",
+        msg
+    )} Hoisted role for other school server owners OR deserving members.
+${dot} ${getRole("Member", msg)} Members of the server.
+${dot} ${getRole("Bypass", msg)} Bypass automod restrictions.
+### MISC
+${dot} Obtain more roles under ⁠⁠${getChannel("self-roles", msg)}.
+${dot} ${getRole(
+        "Bypass",
+        msg
+    )} requires you to have \`750+\` [\`seven hundred and fifty or more\`] messages (</messages:960192961096871976>).
+    `);
+
+    const links = EmbedBuilder.from(base).setImage(
+        "https://cdn.discordapp.com/attachments/1036666970235490394/1140983449038098432/4.png"
+    ).setDescription(stripIndents`
+    ### DISCORD
+    ${dot} [Vanity Invite Link](https://discord.gg/bangalore)
+    ${dot} [Permanent Invite Link](https://discord.com/invite/r6SaGMYYka)
+    ### OFFICIAL
+    ${dot} [Website (Documentation)](https://lorenz1.gitbook.io/bangalore-hub)
+    ${dot} [Terms of Service](https://lorenz1.gitbook.io/bangalore-hub/tc/terms)
+    ${dot} [Privacy Policy](https://lorenz1.gitbook.io/bangalore-hub/tc/policy)
+    ${dot} [Discord Webpage](https://discord.com/servers/bangalore-hub-1023702510730494012)
+    ### PUBLIC
+    ${dot} [Top.gg](https://top.gg/servers/1023702510730494012)
+    ${dot} [Discords.com](https://discords.com/servers/1023702510730494012)
+    ${dot} [Dyno.gg](https://dyno.gg/server/1023702510730494012/)`);
+
+    const jumpToTop = (url: string) =>
+        new ActionRowBuilder<ButtonBuilder>().setComponents(
+            new ButtonBuilder()
+                .setURL(url)
+                .setStyle(ButtonStyle.Link)
+                .setLabel("Jump to top!")
+        );
+    const first = await msg.channel.send({
+        embeds: [about]
+    });
+    [info, roles, links].forEach(
+        async (embed) => await msg.channel.send({ embeds: [embed] })
+    );
+    await msg.channel.send({
+        components: [jumpToTop(first.url)]
+    });
+
+    return await msg.delete().catch(() => {});
 };
 
 const Roles = async (msg: Message) => {
@@ -169,4 +279,16 @@ const getEmoji = (msg: Message, id: string) => {
 };
 const getRoleName = (msg: Message, role: string) => {
     return msg.guild?.roles.cache.get(role)!.name;
+};
+
+const getRole = (name: string, msg: Message) => {
+    return msg.guild?.roles.cache.find((r) => r.name.includes(name));
+};
+
+const getChannel = (name: string, msg: Message) => {
+    return msg.guild?.channels.cache.find(
+        (c) =>
+            c.name.includes(name) &&
+            c.permissionsFor(msg.guild?.roles.everyone!).has("ViewChannel")
+    );
 };
