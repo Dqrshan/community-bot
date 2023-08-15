@@ -3,7 +3,7 @@ export const owners = [
     "806736235585732608",
     "815449659237335101"
 ];
-export const staff = ["1035136945749237800"];
+export const staff = ["1035136945749237800", "1111314760273764382"];
 
 export const prefix = "+";
 
@@ -16,6 +16,8 @@ export const voiceCh = "1083327348788695090";
 
 export const ticketCategory = "1129334365298626620";
 export const ticketLogs = "1095365181741215854";
+
+export const audit = "1023853598502826024";
 
 export const links = {
     rules: "https://discord.com/channels/1023702510730494012/1083272137021866045",
