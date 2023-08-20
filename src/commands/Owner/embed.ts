@@ -220,7 +220,7 @@ const Roles = async (msg: Message) => {
 
     const e4 = EmbedBuilder.from(base)
         .setTitle("Ping Roles")
-        .setImage("https://singlecolorimage.com/get/5865f2/320x20")
+        .setImage("https://singlecolorimage.com/get/5865f2/320x5")
         .setDescription(
             pingRoles.map((d) => `${d.emoji}・<@&${d.role}>`).join("\n")
         )
