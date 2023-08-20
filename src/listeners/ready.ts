@@ -1,6 +1,5 @@
 import { CronJob } from "cron";
 import {
-    ActivityType,
     AttachmentBuilder,
     Client,
     OverwriteType,
@@ -12,17 +11,6 @@ import Snipes from "../lib/snipes";
 import Ticket, { tickets } from "../lib/Ticket";
 
 export default async function run(client: Client) {
-    // activity
-    client.user?.setPresence({
-        activities: [
-            {
-                name: `${client.prefix}help`,
-                type: ActivityType.Listening
-            }
-        ],
-        status: "dnd"
-    });
-
     // load snipes
     await Snipes.load(client);
 

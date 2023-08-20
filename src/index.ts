@@ -1,7 +1,13 @@
 import { config } from "dotenv";
 import { loadCommands } from "./lib/command";
 import { readdirSync } from "fs";
-import { Client, Collection, GatewayIntentBits, Partials } from "discord.js";
+import {
+    ActivityType,
+    Client,
+    Collection,
+    GatewayIntentBits,
+    Partials
+} from "discord.js";
 import consola from "consola";
 import prisma from "./prisma/prisma";
 import { prefix } from "./config";
@@ -22,7 +28,16 @@ const client = new Client({
         Partials.GuildMember,
         Partials.User,
         Partials.Message
-    ]
+    ],
+    presence: {
+        activities: [
+            {
+                name: `${prefix}help`,
+                type: ActivityType.Listening
+            }
+        ],
+        status: "dnd"
+    }
 });
 
 client.console = consola;
