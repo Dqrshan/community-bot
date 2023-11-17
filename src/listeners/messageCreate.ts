@@ -11,7 +11,7 @@ import { chunkify, splitContent } from "../lib/utils";
 import { Pagination } from "../lib/pagination";
 import emojiRegex from "emoji-regex";
 import ms from "ms";
-import { Mention } from "../typings";
+import { ChatData, Mention } from "../typings";
 
 export default async function run(msg: Message) {
     if (msg.author.bot || msg.author.system || !msg.guild || !msg.member)
@@ -337,7 +337,7 @@ const processQueue = async (client: Client) => {
                 await msg.react("⚠️").catch(() => {});
                 return;
             }
-            const data = await res.json();
+            const data = (await res.json()) as ChatData;
 
             const allowedMentions = {
                 roles: [],

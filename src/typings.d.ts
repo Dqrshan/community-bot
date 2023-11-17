@@ -31,3 +31,7 @@ export type Mention = {
     timestamp: Number;
     message: String;
 };
+
+export type ChatData = {
+    response: string | null | undefined;
+};

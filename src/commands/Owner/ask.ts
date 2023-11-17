@@ -1,5 +1,6 @@
 import { Command } from "../../lib/command";
 import { splitContent } from "../../lib/utils";
+import { ChatData } from "../../typings";
 
 const command: Command = {
     name: "ask",
@@ -30,7 +31,7 @@ const command: Command = {
             })
         });
         if (!res.ok) return await msg.react("❌");
-        const data = await res.json();
+        const data = (await res.json()) as ChatData;
 
         if (data.response) {
             let r = data.response;
