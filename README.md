@@ -1,6 +1,6 @@
 # Namma Utils - Discord Bot
 
-![Namma Utils Banner](/home/darshan/Documents/GitHub/community-bot/assets/namma_utils_banner.jpg)
+![Namma Utils Banner](/assets/namma_utils_banner.jpg)
 
 Discord community bot for the **Bangalore Hub** server — tickets, AFK tracking, snipes, role menus, audit logging and more.
 
