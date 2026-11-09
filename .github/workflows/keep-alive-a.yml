@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "*/4 * * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: keep-alive-a
+  cancel-in-progress: false
 
 jobs:
   ping:

@@ -9,6 +9,7 @@ import {
 import { aiChannel, owners, prefix, staff } from "../config";
 import { chunkify, splitContent } from "../lib/utils";
 import { Pagination } from "../lib/pagination";
+import { deleteAfk, deleteMentions, findAfk, findMentions, setMentions } from "../lib/db";
 import emojiRegex from "emoji-regex";
 import ms from "ms";
 import { ChatData, Mention } from "../typings";
@@ -84,26 +85,13 @@ export default async function run(msg: Message) {
     }
 
     // check for afk
-    const data = await msg.client.prisma.afk.findUnique({
-        where: {
-            guild_user: {
-                guild: msg.guildId!,
-                user: msg.author.id
-            }
-        }
-    });
+    const data = await findAfk(msg.guildId!, msg.author.id);
     if (data) {
         if (msg.content.startsWith(`${prefix}afk`)) return;
-        const mentionData = (
-            await msg.client.prisma.mentions.findUnique({
-                where: {
-                    guild_user: {
-                        user: msg.author.id,
-                        guild: msg.guildId!
-                    }
-                }
-            })
-        )?.mentions;
+        const mentionData = (await findMentions(
+            msg.guildId!,
+            msg.author.id
+        ))?.mentions;
         let mentions = null;
         if (mentionData) {
             mentions = JSON.parse(mentionData);
@@ -177,21 +165,12 @@ export default async function run(msg: Message) {
                     embeds: [em]
                 });
             }
-            await msg.client.prisma.mentions.deleteMany({
-                where: { user: msg.author.id, guild: msg.guildId! }
-            });
+            await deleteMentions(msg.guildId!, msg.author.id);
         } else {
             msg.reply({ content });
         }
 
-        await msg.client.prisma.afk.delete({
-            where: {
-                guild_user: {
-                    user: msg.author.id,
-                    guild: msg.guildId!
-                }
-            }
-        });
+        await deleteAfk(msg.guildId!, msg.author.id);
         if (msg.member.displayName.startsWith("[AFK]"))
             msg.member
                 .setNickname(msg.member.displayName.replace("[AFK]", ""))
@@ -204,14 +183,7 @@ export default async function run(msg: Message) {
         msg.mentions.members.forEach(async (member) => {
             if (id === member.user.id) return;
 
-            const data = await msg.client.prisma.afk.findUnique({
-                where: {
-                    guild_user: {
-                        guild: msg.guildId!,
-                        user: member.user.id
-                    }
-                }
-            });
+            const data = await findAfk(msg.guildId!, member.user.id);
 
             if (data) {
                 msg.reply({
@@ -219,18 +191,12 @@ export default async function run(msg: Message) {
                         "[AFK] ",
                         ""
                     )}** is AFK: ${data.reason} - <t:${Math.round(
-                        parseInt(String(data.timestamp)) / 1000
+                        Number(data.timestamp) / 1000
                     )}:R>`
                 });
-                const mentionData = await msg.client.prisma.mentions.findUnique(
-                    {
-                        where: {
-                            guild_user: {
-                                guild: msg.guildId!,
-                                user: member.user.id
-                            }
-                        }
-                    }
+                const mentionData = await findMentions(
+                    msg.guildId!,
+                    member.user.id
                 );
                 const raw = mentionData ? JSON.parse(mentionData.mentions) : [];
                 raw.unshift({
@@ -238,22 +204,11 @@ export default async function run(msg: Message) {
                     message: msg.url,
                     timestamp: Date.now()
                 } as Mention);
-                await msg.client.prisma.mentions.upsert({
-                    where: {
-                        guild_user: {
-                            guild: msg.guildId!,
-                            user: member.user.id
-                        }
-                    },
-                    update: {
-                        mentions: JSON.stringify(raw)
-                    },
-                    create: {
-                        guild: msg.guildId!,
-                        user: member.user.id,
-                        mentions: JSON.stringify(raw)
-                    }
-                });
+                await setMentions(
+                    msg.guildId!,
+                    member.user.id,
+                    JSON.stringify(raw)
+                );
 
                 id = member.user.id;
             }

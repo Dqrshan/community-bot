@@ -1,6 +1,5 @@
 import { CronJob } from "cron";
 import {
-    AttachmentBuilder,
     Client,
     OverwriteType,
     PermissionFlagsBits,
@@ -9,16 +8,18 @@ import {
 import { databaseCh, guildId, ticketCategory } from "../config";
 import Snipes from "../lib/snipes";
 import Ticket, { tickets } from "../lib/Ticket";
+import { backupToChannel } from "../lib/backup";
 
 export default async function run(client: Client) {
     // load snipes
-    await Snipes.load(client);
+    const loaded = await Snipes.load();
+    client.console.success(`Loaded ${loaded} sniped channel(s)`);
 
     // log info to console
-    const { tag, id } = client.user!;
-    client.console.success(`Logged in as ${tag} [${id}]`);
+    const { username, id } = client.user!;
+    client.console.success(`Logged in as ${username} [${id}]`);
 
-    // load tickets
+    // load open tickets
     const server = client.guilds.cache.get(guildId);
     const ticketChannels = server!.channels.cache
         .filter(
@@ -44,26 +45,25 @@ export default async function run(client: Client) {
         );
         tickets.set(ticketAuthor, t);
     }
+    if (tickets.size)
+        client.console.info(`Restored ${tickets.size} open ticket(s)`);
 
-    // database backups
-    const job = new CronJob(
+    // database backups (dumps the live Turso database, no local files)
+    const backupJob = new CronJob(
         "0 */6 * * *",
         async () => {
-            const file = new AttachmentBuilder("src/prisma/database.sqlite", {
-                name: "database.sqlite"
-            });
-            await (client.channels.cache.get(databaseCh) as TextChannel)
-                .send({
-                    files: [file]
-                })
-                .catch(client.console.error);
+            const channel = client.channels.cache.get(
+                databaseCh
+            ) as TextChannel | null;
+            if (!channel) return;
+            await backupToChannel(channel).catch(client.console.error);
         },
         null,
         false,
         "Asia/Kolkata"
     );
     try {
-        job.start();
+        backupJob.start();
         client.console.info("Database backup job started");
     } catch (error) {
         client.console.error(error);

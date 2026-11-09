@@ -1,5 +1,6 @@
 import { EmbedBuilder, Message } from "discord.js";
 import { Command } from "../../lib/command";
+import { createAfk, findAfk } from "../../lib/db";
 
 const AFK: Command = {
     name: "afk",
@@ -7,14 +8,7 @@ const AFK: Command = {
     examples: ["sleeping", "studying", " "],
     usage: "[reason]",
     messageRun: async (msg: Message, args?: string[]) => {
-        const data = await msg.client.prisma.afk.findUnique({
-            where: {
-                guild_user: {
-                    user: msg.author.id,
-                    guild: msg.guildId!
-                }
-            }
-        });
+        const data = await findAfk(msg.guildId!, msg.author.id);
 
         if (data) {
             msg.reply({
@@ -63,14 +57,12 @@ const AFK: Command = {
         if (!name.startsWith("[AFK]"))
             msg.member!.setNickname(`[AFK] ${name}`).catch(() => {});
 
-        await msg.client.prisma.afk.create({
-            data: {
-                user: msg.author.id,
-                guild: msg.guildId!,
-                reason,
-                timestamp: Date.now()
-            }
-        });
+        await createAfk(
+            msg.guildId!,
+            msg.author.id,
+            reason,
+            Date.now()
+        );
     }
 };
 

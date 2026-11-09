@@ -20,7 +20,7 @@ import {
     TextInputStyle,
     User
 } from "discord.js";
-import prisma from "../prisma/prisma";
+import { setTicketCount, ticketCount } from "./db";
 import { links, staff, ticketCategory, ticketLogs } from "../config";
 import { createTranscript } from "discord-html-transcripts";
 import { sleep } from "./utils";
@@ -46,15 +46,9 @@ export default class Ticket {
     public static async fromInteraction(
         interaction: ModalSubmitInteraction | ButtonInteraction
     ) {
-        const counter =
-            (await prisma.settings.findUnique({
-                where: { guild: interaction.guildId! }
-            }))!?.ticketCount ?? 0;
-        await prisma.settings.upsert({
-            where: { guild: interaction.guildId! },
-            update: { ticketCount: counter + 1 },
-            create: { ticketCount: counter + 1, guild: interaction.guildId! }
-        });
+        const guildId = interaction.guildId!;
+        const counter = await ticketCount(guildId);
+        await setTicketCount(guildId, counter + 1);
 
         return new Ticket(
             counter + 1,

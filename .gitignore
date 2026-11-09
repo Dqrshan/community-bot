@@ -2,7 +2,6 @@ node_modules/
 dist/
 .env
 package-lock.json
-src/prisma/database.sqlite
 debug.config
 .catalystrc
-assets/
+database.sqlite

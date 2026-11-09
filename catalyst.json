@@ -1,8 +1,8 @@
 {
   "appsail": [
     {
-      "source": ".",
-      "name": "community-bot"
+      "name": "community-bot",
+      "source": "."
     }
   ]
 }

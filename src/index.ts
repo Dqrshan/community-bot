@@ -10,7 +10,7 @@ import {
     Partials
 } from "discord.js";
 import consola from "consola";
-import prisma from "./prisma/prisma";
+import { ensureSchema, findAfk } from "./lib/db";
 import { prefix } from "./config";
 
 config();
@@ -42,7 +42,6 @@ const client = new Client({
 
 client.console = consola;
 client.prefix = prefix;
-client.prisma = prisma;
 client.commands = new Collection();
 client.queue = [];
 
@@ -79,8 +78,7 @@ createServer((req, res) => {
     if (req.url === "/health") {
         Promise.all([
             Promise.resolve(client.isReady()),
-            client.prisma.afk
-                .findFirst()
+            findAfk("health", "probe")
                 .then(() => true)
                 .catch(() => false)
         ]).then(([ready, db]) => {
@@ -104,6 +102,16 @@ createServer((req, res) => {
     client.console.info(`Health server listening on port ${port}`);
 });
 
-Promise.all([loadEvents(client), loadCommands(client)]).then(() =>
-    client.login(process.env.DISCORD_TOKEN ?? process.env.DISCORD_BOT_TOKEN)
-);
+ensureSchema()
+    .then(() =>
+        Promise.all([loadEvents(client), loadCommands(client)])
+    )
+    .then(() =>
+        client.login(
+            process.env.DISCORD_TOKEN ?? process.env.DISCORD_BOT_TOKEN
+        )
+    )
+    .catch((error) => {
+        client.console.error(error);
+        process.exit(1);
+    });

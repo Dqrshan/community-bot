@@ -1,12 +1,13 @@
-import { APIEmbed, Client, Collection } from "discord.js";
+import type { APIEmbed, Client } from "discord.js";
+import { allSnipes, writeSnipes } from "./db";
 
 export default class Snipes {
-    public static async load(client: Client) {
-        const full = await client.prisma.snipes.findMany();
-        for (const f of full) {
-            snipes.set(f.channel, JSON.parse(f.data));
+    public static async load() {
+        const stored = await allSnipes();
+        for (const row of stored) {
+            snipes.set(row.channel, JSON.parse(row.data));
         }
-        client.console.success(`Loaded ${snipes.size} snipes`);
+        return snipes.size;
     }
     public static async set(
         client: Client,
@@ -26,23 +27,9 @@ export default class Snipes {
         });
 
         snipes.set(channel, raw);
-        await client.prisma.snipes
-            .upsert({
-                create: {
-                    channel,
-                    data: JSON.stringify(raw),
-                    timestamp: data.timestamp
-                },
-                update: {
-                    channel,
-                    data: JSON.stringify(raw),
-                    timestamp: data.timestamp
-                },
-                where: {
-                    channel
-                }
-            })
-            .catch(console.error);
+        await writeSnipes(channel, JSON.stringify(raw), data.timestamp).catch(
+            (error) => client.console.error(error)
+        );
         return;
     }
 
@@ -53,7 +40,7 @@ export default class Snipes {
     }
 }
 
-export const snipes = new Collection<string, snipeObject[]>();
+export const snipes = new Map<string, snipeObject[]>();
 
 export type snipeObject = {
     message: string;

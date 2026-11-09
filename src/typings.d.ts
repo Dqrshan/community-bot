@@ -1,7 +1,6 @@
 import consola from "consola";
 import type { Collection, Message } from "discord.js";
 import type { Command } from "./lib/command";
-import type { PrismaClient } from "@prisma/client";
 
 export {};
 
@@ -11,6 +10,8 @@ declare global {
             DISCORD_TOKEN?: string;
             DISCORD_BOT_TOKEN?: string;
             AI_URL?: string;
+            TURSO_DATABASE_URL?: string;
+            TURSO_AUTH_TOKEN?: string;
         }
     }
 }
@@ -20,7 +21,6 @@ declare module "discord.js" {
         console: typeof consola;
         commands: Collection<string, Command>;
         prefix: string;
-        prisma: PrismaClient;
         queue: Message[];
     }
 }
