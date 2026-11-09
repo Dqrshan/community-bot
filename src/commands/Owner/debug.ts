@@ -3,7 +3,7 @@ import { EmbedBuilder, Message, version } from "discord.js";
 
 const command: Command = {
     name: "debug",
-    description: "Show bot diagnostics & runtime statistics",
+    description: "Show bot diagnostics and runtime statistics",
     ownerOnly: true,
     messageRun: async (msg: Message) => {
         const uptime = Math.round(
@@ -13,20 +13,20 @@ const command: Command = {
 
         const embed = new EmbedBuilder()
             .setColor("Blurple")
-            .setTitle("🩺 Bot Diagnostics")
+            .setTitle("Bot diagnostics")
             .addFields(
                 {
-                    name: "🏓 Websocket",
+                    name: "Websocket",
                     value: `\`${Math.round(msg.client.ws.ping)}ms\``,
                     inline: true
                 },
                 {
-                    name: "⏱️ Uptime",
+                    name: "Uptime",
                     value: `<t:${uptime}:R>`,
                     inline: true
                 },
                 {
-                    name: "🧠 Memory",
+                    name: "Memory",
                     value: `\`${(mem.heapUsed / 1024 / 1024).toFixed(1)} / ${(
                         mem.heapTotal /
                         1024 /
@@ -35,32 +35,32 @@ const command: Command = {
                     inline: true
                 },
                 {
-                    name: "🏠 Servers",
+                    name: "Servers",
                     value: `\`${msg.client.guilds.cache.size}\``,
                     inline: true
                 },
                 {
-                    name: "💬 Commands",
+                    name: "Commands",
                     value: `\`${msg.client.commands.size}\``,
                     inline: true
                 },
                 {
-                    name: "👥 Cached Users",
+                    name: "Cached users",
                     value: `\`${msg.client.users.cache.size.toLocaleString()}\``,
                     inline: true
                 },
                 {
-                    name: "🤖 discord.js",
+                    name: "discord.js",
                     value: `\`v${version}\``,
                     inline: true
                 },
                 {
-                    name: "🟢 Node.js",
+                    name: "Node.js",
                     value: `\`${process.version}\``,
                     inline: true
                 },
                 {
-                    name: "⚙️ Platform",
+                    name: "Platform",
                     value: `\`${process.platform} ${process.arch}\``,
                     inline: true
                 }

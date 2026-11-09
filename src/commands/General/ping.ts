@@ -10,7 +10,7 @@ const ping: Command = {
             embeds: [
                 new EmbedBuilder()
                     .setColor("Blurple")
-                    .setDescription("🏓 Pinging...")
+                    .setDescription("Measuring latency...")
             ]
         });
 
@@ -23,22 +23,24 @@ const ping: Command = {
         const embed = new EmbedBuilder()
             .setColor("Blurple")
             .setAuthor({
-                name: "Pong!",
+                name: "Pong",
                 iconURL: msg.client.user?.displayAvatarURL()
             })
             .addFields(
                 {
-                    name: "📡 Roundtrip",
+                    name: "Roundtrip",
                     value: `\`${roundtrip}ms\``,
                     inline: true
                 },
                 {
-                    name: "🔌 Websocket",
-                    value: `\`${ws < 0 ? "measuring..." : `${Math.round(ws)}ms`}\``,
+                    name: "Websocket",
+                    value: `\`${
+                        ws < 0 ? "measuring" : `${Math.round(ws)}ms`
+                    }\``,
                     inline: true
                 },
                 {
-                    name: "⏱️ Uptime",
+                    name: "Uptime",
                     value: `<t:${uptime}:R>`,
                     inline: true
                 }

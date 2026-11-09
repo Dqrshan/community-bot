@@ -1,18 +1,25 @@
 import {
     ButtonBuilder,
     ButtonStyle,
-    Client,
     EmbedBuilder,
     Message,
     TextChannel
 } from "discord.js";
 import { aiChannel, owners, prefix, staff } from "../config";
-import { chunkify, splitContent } from "../lib/utils";
+import { chunkify } from "../lib/utils";
 import { Pagination } from "../lib/pagination";
-import { deleteAfk, deleteMentions, findAfk, findMentions, setMentions } from "../lib/db";
+import {
+    deleteAfk,
+    deleteMentions,
+    findAfk,
+    findMentions,
+    setMentions
+} from "../lib/db";
+import { errorEmbed, infoEmbed } from "../lib/response";
+import { chatAsSudeep } from "../lib/ai";
 import emojiRegex from "emoji-regex";
 import ms from "ms";
-import { ChatData, Mention } from "../typings";
+import { Mention } from "../typings";
 
 export default async function run(msg: Message) {
     if (msg.author.bot || msg.author.system || !msg.guild || !msg.member)
@@ -22,14 +29,9 @@ export default async function run(msg: Message) {
     if (botMention(msg)) {
         msg.reply({
             embeds: [
-                new EmbedBuilder()
-                    .setAuthor({
-                        name: "👋 Hello!"
-                    })
-                    .setDescription(
-                        `My prefix is \`${msg.client.prefix}\`\nUse \`${msg.client.prefix}help\` to view all commands`
-                    )
-                    .setColor("Blurple")
+                infoEmbed(
+                    `My prefix is \`${msg.client.prefix}\`\nUse \`${msg.client.prefix}help\` to view all commands`
+                )
             ]
         });
         return;
@@ -50,7 +52,9 @@ export default async function run(msg: Message) {
         try {
             if (command.ownerOnly && !owners.includes(msg.author.id)) {
                 msg.reply({
-                    content: "This command can only be used by the owners"
+                    embeds: [
+                        errorEmbed("This command can only be used by the owners.")
+                    ]
                 });
                 return;
             }
@@ -60,7 +64,9 @@ export default async function run(msg: Message) {
                 !msg.member.roles.cache.some((r) => staff.includes(r.id))
             ) {
                 msg.reply({
-                    content: "This command can only be used by the staff"
+                    embeds: [
+                        errorEmbed("This command can only be used by the staff.")
+                    ]
                 });
                 return;
             }
@@ -68,16 +74,11 @@ export default async function run(msg: Message) {
         } catch (error) {
             msg.reply({
                 embeds: [
-                    new EmbedBuilder()
-                        .setAuthor({
-                            name: "❌ Error"
-                        })
-                        .setDescription(
-                            error && error instanceof Error
-                                ? `\`${error.name}\`: \`${error.message}\``
-                                : `Error: ${error}`
-                        )
-                        .setColor("Red")
+                    errorEmbed(
+                        error && error instanceof Error
+                            ? `\`${error.name}\`: \`${error.message}\``
+                            : `Error: ${error}`
+                    )
                 ]
             });
             msg.client.console.error(error);
@@ -129,11 +130,11 @@ export default async function run(msg: Message) {
 
                 const buttons = [
                     new ButtonBuilder()
-                        .setLabel("⬅️")
+                        .setLabel("Previous")
                         .setStyle(ButtonStyle.Secondary)
                         .setCustomId("_P"),
                     new ButtonBuilder()
-                        .setLabel("➡️")
+                        .setLabel("Next")
                         .setStyle(ButtonStyle.Secondary)
                         .setCustomId("_N")
                 ];
@@ -167,7 +168,7 @@ export default async function run(msg: Message) {
             }
             await deleteMentions(msg.guildId!, msg.author.id);
         } else {
-            msg.reply({ content });
+            msg.reply({ embeds: [infoEmbed(content)] });
         }
 
         await deleteAfk(msg.guildId!, msg.author.id);
@@ -233,13 +234,34 @@ export default async function run(msg: Message) {
         }
     }
 
-    // ai
+    // ai (Sudeep in the ai channel)
     if (msg.channelId === aiChannel) {
-        if (!msg.content || msg.content.length === 0 || msg.content.length < 3)
-            return;
-        msg.client.queue.push(msg);
-        if (msg.client.queue.length === 1) {
-            await processQueue(msg.client);
+        if (!msg.content || msg.content.length < 3) return;
+        await (msg.channel as TextChannel).sendTyping().catch(() => {});
+        try {
+            const reply = await chatAsSudeep(
+                msg.guildId!,
+                msg.author.id,
+                msg.author.username,
+                msg.content
+            );
+            await msg
+                .reply({
+                    content: reply,
+                    allowedMentions: { repliedUser: true }
+                })
+                .catch(() => {});
+        } catch (error) {
+            msg.client.console.error(error);
+            await msg
+                .reply({
+                    embeds: [
+                        errorEmbed(
+                            "Sudeep is taking a chai break. Try again in a bit."
+                        )
+                    ]
+                })
+                .catch(() => {});
         }
     }
 }
@@ -250,89 +272,4 @@ const botMention = (msg: Message) => {
         `<@${msg.client.user.id}>`,
         `<@&${msg.guild!.roles.botRoleFor(msg.client.user)?.id}>`
     ].some((x) => msg.content === x);
-};
-
-const processQueue = async (client: Client) => {
-    while (client.queue.length > 0) {
-        const msg = client.queue[0];
-
-        const ms = await (msg.channel as TextChannel).messages.fetch({
-            limit: 5
-        });
-
-        const messages = ms
-            .filter(
-                (m) =>
-                    (m.author.id === msg.author.id && m.content.length >= 3) ||
-                    (m.author.id === msg.client.user.id &&
-                        m.mentions.repliedUser &&
-                        m.mentions.repliedUser.id === msg.author.id)
-            )
-            .map((m) => ({
-                role: m.author.bot ? "assistant" : "user",
-                content: m.content
-            }));
-
-        messages.reverse();
-
-        await (msg.channel as TextChannel).sendTyping();
-        try {
-            const res = await fetch(process.env.AI_URL!, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    messages
-                })
-            });
-
-            if (!res.ok) {
-                client.queue.shift();
-                await msg.react("⚠️").catch(() => {});
-                return;
-            }
-            const data = (await res.json()) as ChatData;
-
-            const allowedMentions = {
-                roles: [],
-                users: [],
-                repliedUser: true
-            };
-
-            if (data.response) {
-                let r = data.response;
-                if (r.length > 2000) {
-                    const strs = splitContent(r, 2000);
-                    for (const str of strs) {
-                        if (strs.indexOf(str) === 0) {
-                            await msg
-                                .reply({ content: str, allowedMentions })
-                                .catch(() => {});
-                            continue;
-                        } else {
-                            await (msg.channel as TextChannel)
-                                .send({ content: str, allowedMentions })
-                                .catch(() => {});
-                        }
-                    }
-                } else {
-                    await msg
-                        .reply({ content: r, allowedMentions })
-                        .catch(() => {});
-                }
-            } else {
-                await msg.react("⚠️").catch(() => {});
-            }
-        } catch (error) {
-            msg.client.console.error(error);
-            await msg.react("⚠️").catch(() => {});
-        }
-        msg.channel.messages.cache.clear();
-        client.queue.shift();
-    }
-
-    if (client.queue.length > 0) {
-        await processQueue(client);
-    }
 };

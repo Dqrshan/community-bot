@@ -8,11 +8,12 @@ import {
     User
 } from "discord.js";
 import { Command } from "../../lib/command";
+import { errorEmbed } from "../../lib/response";
 
 const avatar: Command = {
     name: "avatar",
-    description: "View the avatar, banner & server avatar of a user",
-    aliases: ["av", "pfp", "banner"],
+    description: "View the avatar and banner of a user",
+    aliases: ["av", "pfp"],
     usage: "[userID] | [@user]",
     examples: ["<@838620835282812969>", "838620835282812969", " "],
     messageRun: async (msg: Message, args?: string[]) => {
@@ -23,11 +24,7 @@ const avatar: Command = {
             user = await msg.client.users.fetch(args![0]).catch(() => null!);
             if (!user) {
                 return msg.reply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setColor("Red")
-                            .setDescription("❌ I couldn't find that user.")
-                    ]
+                    embeds: [errorEmbed("I couldn't find that user.")]
                 });
             }
         } else {
@@ -38,71 +35,67 @@ const avatar: Command = {
             : null;
 
         const base = new EmbedBuilder()
-            .setTitle(`${user.displayName}'s Profile`)
+            .setTitle(`${user.displayName}`)
             .setURL(`https://discord.com/users/${user.id}`)
             .setColor(member ? member.displayHexColor : "#2F3136")
-            .setFooter({
-                text: user.id,
-                iconURL: user.displayAvatarURL()
-            });
+            .setFooter({ text: user.id, iconURL: user.displayAvatarURL() });
 
-        const avatar = EmbedBuilder.from(
+        const avatarView = EmbedBuilder.from(
             base.setImage(user.avatarURL({ size: 512 })).toJSON()
         );
 
         (await user.fetch()).banner;
-        const banner = EmbedBuilder.from(base.toJSON());
+        const bannerView = EmbedBuilder.from(base.toJSON());
         if (user.banner) {
-            banner.setImage(user.bannerURL({ size: 512 })!);
+            bannerView.setImage(user.bannerURL({ size: 512 })!);
         }
 
-        const server = EmbedBuilder.from(base.toJSON());
+        const serverView = EmbedBuilder.from(base.toJSON());
         if (member) {
             (await member.fetch()).avatar;
             if (member.avatar) {
-                server.setImage(member.avatarURL({ size: 512 }));
+                serverView.setImage(member.avatarURL({ size: 512 }));
             }
         }
 
-        const mkButton = (
-            label: string,
-            id: string,
-            emoji: string
-        ): ButtonBuilder =>
-            new ButtonBuilder()
-                .setLabel(label)
-                .setCustomId(id)
-                .setEmoji(emoji)
-                .setStyle(ButtonStyle.Secondary);
-
-        const allButtons = [
-            mkButton("Avatar", "_A", "🖼️"),
-            mkButton("Banner", "_B", "🎨"),
-            mkButton("Server", "_S", "🏠")
+        const views = [
+            { id: "_A", label: "Avatar", embed: avatarView, enabled: true },
+            {
+                id: "_B",
+                label: "Banner",
+                embed: bannerView,
+                enabled: Boolean(user.banner)
+            },
+            {
+                id: "_S",
+                label: "Server",
+                embed: serverView,
+                enabled: Boolean(member?.avatar)
+            }
         ];
-        let activeButtons: ButtonBuilder[] = [];
+        const active = views.filter((v) => v.enabled);
 
         const row = new ActionRowBuilder<ButtonBuilder>();
         let initial: Message;
 
-        if (member && member.avatar && user.banner) {
-            activeButtons = allButtons;
-        } else if (member && member.avatar && !user.banner) {
-            activeButtons = [allButtons[0], allButtons[2]];
-        } else if (user.banner) {
-            activeButtons = [allButtons[0], allButtons[1]];
-        }
-
-        if (activeButtons.length) {
+        if (active.length > 1) {
             initial = await msg.reply({
-                components: [row.setComponents(activeButtons)],
-                embeds: [avatar]
+                components: [
+                    row.setComponents(
+                        active.map((v) =>
+                            new ButtonBuilder()
+                                .setLabel(v.label)
+                                .setCustomId(v.id)
+                                .setStyle(ButtonStyle.Secondary)
+                        )
+                    )
+                ],
+                embeds: [avatarView]
             });
         } else {
-            initial = await msg.reply({ embeds: [avatar] });
+            initial = await msg.reply({ embeds: [avatarView] });
+            return;
         }
-
-        if (!activeButtons.length) return;
 
         const collector = initial.createMessageComponentCollector({
             componentType: ComponentType.Button,
@@ -112,13 +105,8 @@ const avatar: Command = {
 
         collector.on("collect", async (ctx) => {
             await ctx.deferUpdate().catch(() => {});
-            const view =
-                ctx.customId === "_A"
-                    ? avatar
-                    : ctx.customId === "_B"
-                    ? banner
-                    : server;
-            await initial.edit({ embeds: [view] }).catch(() => {});
+            const view = active.find((v) => v.id === ctx.customId);
+            if (view) await initial.edit({ embeds: [view.embed] }).catch(() => {});
             collector.resetTimer();
         });
 
@@ -127,7 +115,13 @@ const avatar: Command = {
                 .edit({
                     components: [
                         row.setComponents(
-                            activeButtons.map((b) => b.setDisabled(true))
+                            active.map((v) =>
+                                new ButtonBuilder()
+                                    .setLabel(v.label)
+                                    .setCustomId(v.id)
+                                    .setStyle(ButtonStyle.Secondary)
+                                    .setDisabled(true)
+                            )
                         )
                     ]
                 })

@@ -1,6 +1,7 @@
 import { EmbedBuilder, Message, TextChannel } from "discord.js";
 import { Command } from "../../lib/command";
 import { splitContent } from "../../lib/utils";
+import { errorEmbed } from "../../lib/response";
 import { ChatData } from "../../typings";
 
 const command: Command = {
@@ -11,11 +12,14 @@ const command: Command = {
     messageRun: async (msg: Message, args) => {
         if (!args || !args.length) {
             msg.reply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor("Orange")
-                        .setDescription("⚠️ Provide a query to ask!")
-                ]
+                embeds: [errorEmbed("Please provide a query to ask.")]
+            });
+            return;
+        }
+
+        if (!process.env.AI_URL) {
+            msg.reply({
+                embeds: [errorEmbed("The AI endpoint is not configured.")]
             });
             return;
         }
@@ -23,16 +27,6 @@ const command: Command = {
         const query = args.join(" ");
         await (msg.channel as TextChannel).sendTyping();
 
-        if (!process.env.AI_URL) {
-            msg.reply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor("Red")
-                        .setDescription("❌ AI endpoint is not configured.")
-                ]
-            });
-            return;
-        }
         const res = await fetch(process.env.AI_URL, {
             method: "POST",
             headers: {
@@ -47,24 +41,25 @@ const command: Command = {
                 ]
             })
         });
-        if (!res.ok) return await msg.react("❌");
+        if (!res.ok) {
+            return msg.reply({
+                embeds: [errorEmbed("The AI request failed.")]
+            });
+        }
         const data = (await res.json()) as ChatData;
 
         if (data.response) {
-            let r = data.response;
             const embed = new EmbedBuilder()
                 .setColor("Blurple")
                 .setAuthor({
-                    name: `Asked: ${query.slice(0, 200)}`,
+                    name: query.slice(0, 200),
                     iconURL: msg.author.displayAvatarURL()
                 });
+            let r = data.response;
             if (r.length > 3900) {
-                const strs = splitContent(r, 3900);
-                for (const str of strs) {
+                for (const str of splitContent(r, 3900)) {
                     await (msg.channel as TextChannel)
-                        .send({
-                            embeds: [embed.setDescription(str.slice(0, 4096))]
-                        })
+                        .send({ embeds: [embed.setDescription(str.slice(0, 4096))] })
                         .catch(() => {});
                 }
             } else {
@@ -73,7 +68,9 @@ const command: Command = {
                     .catch(() => {});
             }
         } else {
-            await msg.react("❌");
+            await msg.reply({
+                embeds: [errorEmbed("The AI returned no response.")]
+            });
         }
     }
 };

@@ -6,50 +6,50 @@ import {
     Message
 } from "discord.js";
 import { Command } from "../../lib/command";
+import { DOT, errorEmbed } from "../../lib/response";
 import { links } from "../../config";
 
 const rules = () => [
     {
         rule: 1,
-        title: "Be Respectful",
+        title: "Be respectful",
         content:
-            "Be respectful and civil. We have absolutely zero tolerance for any racism, sexism, hate speech, or any other offensive/disruptive behaviour. This applies to voice chats as well. The use of profanity should be kept to a minimum."
+            "Be respectful and civil. We have absolutely zero tolerance for any racism, sexism, hate speech, or any other offensive or disruptive behaviour. This applies to voice chats as well. The use of profanity should be kept to a minimum."
     },
     {
         rule: 2,
-        title: "English Only",
+        title: "English only",
         content:
             "Please keep all discussion in text channels and general voice channels in English."
     },
     {
         rule: 3,
-        title: "No NSFW",
+        title: "No NSFW content",
         content:
             "Absolutely no NSFW, offensive or disruptive content. This includes content on your Discord profile (profile picture, username, etc.)."
     },
     {
         rule: 4,
-        title: "Discord ToS",
+        title: "Discord guidelines",
         content:
             "Adhere to Discord's Community Guidelines (<https://discord.com/guidelines>) and Terms of Service (<https://discord.com/terms>)."
     },
     {
         rule: 5,
-        title: "No Spam",
+        title: "No spam",
         content:
-            "Don't spam. This includes excessive amounts of messages, emojis, capital letters, pings/mentions, etc."
+            "Don't spam. This includes excessive amounts of messages, emojis, capital letters, pings or mentions, etc."
     },
     {
         rule: 6,
-        title: "Right Channel",
-        content:
-            "Use the appropriate channels for messaging or posting content."
+        title: "Right channels",
+        content: "Use the appropriate channels for messaging or posting content."
     },
     {
         rule: 7,
-        title: "No Advertising",
+        title: "No advertising",
         content:
-            "No advertisements. We do not tolerate any kind of advertisements, whether it be for other communities or streams. You can post your content in the media channel if it is relevant and provides actual value (video/art)."
+            "No advertisements. We do not tolerate any kind of advertisements, whether it be for other communities or streams. You can post your content in the media channel if it is relevant and provides actual value (video or art)."
     }
 ];
 
@@ -62,8 +62,7 @@ const rule: Command = {
     messageRun: async (msg: Message, args?: string[]) => {
         const button = new ActionRowBuilder<ButtonBuilder>().setComponents(
             new ButtonBuilder()
-                .setLabel("Full Rules")
-                .setEmoji("📜")
+                .setLabel("Full rules")
                 .setStyle(ButtonStyle.Link)
                 .setURL(links.rules)
         );
@@ -76,12 +75,12 @@ const rule: Command = {
             const embed = new EmbedBuilder()
                 .setColor("Blurple")
                 .setAuthor({
-                    name: "Server Rules",
+                    name: "Server rules",
                     iconURL: msg.client.user?.displayAvatarURL()
                 })
                 .setDescription(
                     rules()
-                        .map((r) => `**${r.rule}.** ${r.title}`)
+                        .map((r) => `${r.rule} ${DOT} ${r.title}`)
                         .join("\n")
                 )
                 .setFooter({
@@ -107,20 +106,18 @@ const rule: Command = {
         const embed = matched
             ? new EmbedBuilder()
                   .setColor("Blurple")
-                  .setTitle(`📜 Rule ${matched.rule} — ${matched.title}`)
+                  .setTitle(`Rule ${matched.rule} ${DOT} ${matched.title}`)
                   .setDescription(matched.content)
                   .setFooter({
                       text: user
-                            ? `Suggested for ${user.username}`
-                            : `Requested by ${msg.author.username}`,
+                          ? `Suggested for ${user.username}`
+                          : `Requested by ${msg.author.username}`,
                       iconURL: msg.author.displayAvatarURL()
                   })
                   .setTimestamp()
-            : new EmbedBuilder()
-                  .setColor("Red")
-                  .setDescription(
-                      "❌ Couldn't find what you were looking for!"
-                  );
+            : errorEmbed(
+                  "I couldn't find a rule matching what you were looking for."
+              );
 
         return msg.reply({ embeds: [embed], components: [button] });
     }

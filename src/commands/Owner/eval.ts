@@ -1,6 +1,7 @@
-import { EmbedBuilder, Message } from "discord.js";
+import { Message } from "discord.js";
 import type { Command } from "../../lib/command";
 import { isThenable } from "../../lib/isThenable";
+import { errorEmbed } from "../../lib/response";
 import { inspect } from "util";
 
 const evalCommand: Command = {
@@ -11,11 +12,7 @@ const evalCommand: Command = {
     messageRun: async (msg: Message, args: string[] | undefined) => {
         if (!args || !args.length) {
             msg.reply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor("Orange")
-                        .setDescription("⚠️ Please provide code to evaluate!")
-                ]
+                embeds: [errorEmbed("Please provide code to evaluate.")]
             });
             return;
         }
@@ -32,7 +29,7 @@ const evalCommand: Command = {
 
         if (output.length > 2000) {
             return msg.reply({
-                content: "📤 Output was too long — sent the result as a file",
+                content: "The output was too long. It has been sent as a file.",
                 files: [{ attachment: Buffer.from(output), name: "output.js" }]
             });
         }

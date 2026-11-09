@@ -7,13 +7,14 @@ import {
     Message
 } from "discord.js";
 import { Command } from "../../lib/command";
+import { DOT, errorEmbed } from "../../lib/response";
 import { links, owners } from "../../config";
 
-const CATEGORY_META: Record<string, { emoji: string; blurb: string }> = {
-    General: { emoji: "🌐", blurb: "Everyday commands for everyone" },
-    Utility: { emoji: "🛠️", blurb: "Handy tools & server utilities" },
-    Staff: { emoji: "🛡️", blurb: "Moderation tools for staff" },
-    Owner: { emoji: "🔒", blurb: "Restricted to the bot owners" }
+const CATEGORIES: Record<string, string> = {
+    General: "Everyday commands for everyone",
+    Utility: "Handy tools and server utilities",
+    Staff: "Moderation tools for staff",
+    Owner: "Restricted to the bot owners"
 };
 
 const help: Command = {
@@ -23,9 +24,11 @@ const help: Command = {
     usage: "[commandName]",
     examples: ["ping", "avatar", " "],
     messageRun: async (msg: Message, args) => {
-        const accent = msg.member
-            ? (msg.member as GuildMember).displayHexColor
-            : "Blurple";
+        const accent =
+            msg.member &&
+            (msg.member as GuildMember).displayHexColor !== "#000000"
+                ? (msg.member as GuildMember).displayHexColor
+                : "Blurple";
 
         if (args?.length) {
             const query = args[0].toLowerCase();
@@ -37,49 +40,45 @@ const help: Command = {
             if (!command || command.category === "Owner") {
                 return msg.reply({
                     embeds: [
-                        new EmbedBuilder()
-                            .setColor("Red")
-                            .setDescription(
-                                `❌ I couldn't find a command called \`${query}\`.`
-                            )
+                        errorEmbed(
+                            `I couldn't find a command called \`${query}\`.`
+                        )
                     ]
                 });
             }
 
-            const meta = CATEGORY_META[command.category!] ?? {
-                emoji: "•",
-                blurb: ""
-            };
             const embed = new EmbedBuilder()
-                .setColor(accent === "#000000" ? "Blurple" : accent)
-                .setTitle(`${meta.emoji} ${command.name}`)
+                .setColor(accent)
+                .setTitle(command.name)
                 .setDescription(command.description ?? "No description")
                 .addFields(
                     {
-                        name: "📂 Category",
+                        name: "Category",
                         value: command.category!,
                         inline: true
                     },
                     {
-                        name: "🏷️ Aliases",
+                        name: "Aliases",
                         value: command.aliases?.length
-                            ? command.aliases.map((a) => `\`${a}\``).join(", ")
+                            ? command.aliases
+                                  .map((a) => `\`${a}\``)
+                                  .join(` ${DOT} `)
                             : "None",
                         inline: true
                     },
                     {
-                        name: "🔎 Usage",
+                        name: "Usage",
                         value: `\`${msg.client.prefix}${command.name} ${command.usage ?? ""}\``,
                         inline: false
                     }
                 )
                 .setFooter({
-                    text: "[] → optional  •  <> → required"
+                    text: `[] optional ${DOT} <> required`
                 });
 
             if (command.examples?.length) {
                 embed.addFields({
-                    name: "✨ Examples",
+                    name: "Examples",
                     value: command.examples
                         .map(
                             (ex) =>
@@ -103,9 +102,9 @@ const help: Command = {
         ];
 
         const embed = new EmbedBuilder()
-            .setColor(accent === "#000000" ? "Blurple" : accent)
+            .setColor(accent)
             .setAuthor({
-                name: `${msg.client.user?.username} — Command List`,
+                name: `${msg.client.user?.username} Command List`,
                 iconURL: msg.client.user?.displayAvatarURL()
             })
             .setDescription(
@@ -116,21 +115,17 @@ const help: Command = {
                     const commands = msg.client.commands.filter(
                         (c) => c.category === dir
                     );
-                    const meta = CATEGORY_META[dir] ?? {
-                        emoji: "•",
-                        blurb: ""
-                    };
                     return {
-                        name: `${meta.emoji} ${dir} (${commands.size})`,
-                        value: `${meta.blurb}\n${commands
+                        name: `${dir} ${DOT} ${commands.size}`,
+                        value: `${CATEGORIES[dir] ?? ""}\n${commands
                             .map((x) => `\`${x.name}\``)
-                            .join(" ")}`,
+                            .join(` ${DOT} `)}`,
                         inline: false
                     };
                 })
             )
             .setFooter({
-                text: `${msg.client.commands.size} commands • ${msg.client.prefix}help`,
+                text: `${msg.client.commands.size} commands ${DOT} ${msg.client.prefix}help`,
                 iconURL: msg.client.user?.displayAvatarURL()
             });
 
@@ -145,9 +140,7 @@ const help: Command = {
                 .setURL(links.topgg)
         );
 
-        await msg
-            .reply({ embeds: [embed], components: [row] })
-            .catch(() => {});
+        await msg.reply({ embeds: [embed], components: [row] }).catch(() => {});
     }
 };
 

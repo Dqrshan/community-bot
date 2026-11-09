@@ -1,5 +1,6 @@
 import { EmbedBuilder, Message } from "discord.js";
 import { Command } from "../../lib/command";
+import { errorEmbed, infoEmbed } from "../../lib/response";
 import { createAfk, findAfk } from "../../lib/db";
 
 const AFK: Command = {
@@ -8,31 +9,26 @@ const AFK: Command = {
     examples: ["sleeping", "studying", " "],
     usage: "[reason]",
     messageRun: async (msg: Message, args?: string[]) => {
-        const data = await findAfk(msg.guildId!, msg.author.id);
+        const guildId = msg.guildId!;
+        const data = await findAfk(guildId, msg.author.id);
 
         if (data) {
-            msg.reply({
+            return msg.reply({
                 embeds: [
-                    new EmbedBuilder()
-                        .setColor("Orange")
-                        .setDescription("⚠️ You are already AFK!")
+                    infoEmbed(
+                        "You are already AFK. Send a message to clear your status."
+                    )
                 ]
             });
-            return;
         }
 
         let reason = args!.length ? args!.join(" ") : "AFK";
         if (reason.length > 500) {
-            msg.reply({
+            return msg.reply({
                 embeds: [
-                    new EmbedBuilder()
-                        .setColor("Red")
-                        .setDescription(
-                            "❌ The reason cannot exceed `500` characters."
-                        )
+                    errorEmbed("The reason cannot exceed 500 characters.")
                 ]
             });
-            return;
         }
         reason = reason
             .replaceAll(/@everyone/g, "everyone")
@@ -45,9 +41,9 @@ const AFK: Command = {
                 name: `${msg.author.username} is now AFK`,
                 iconURL: msg.author.displayAvatarURL()
             })
-            .setDescription(`> 💤 ${reason}`)
+            .setDescription(reason)
             .setFooter({
-                text: "I'll clear this automatically when you return"
+                text: "This clears automatically when you send a message"
             })
             .setTimestamp();
 
@@ -57,12 +53,7 @@ const AFK: Command = {
         if (!name.startsWith("[AFK]"))
             msg.member!.setNickname(`[AFK] ${name}`).catch(() => {});
 
-        await createAfk(
-            msg.guildId!,
-            msg.author.id,
-            reason,
-            Date.now()
-        );
+        await createAfk(guildId, msg.author.id, reason, Date.now());
     }
 };
 

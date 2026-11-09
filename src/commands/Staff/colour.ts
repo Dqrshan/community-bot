@@ -5,6 +5,9 @@ import {
     resolveColor,
     ColorResolvable
 } from "discord.js";
+import { errorEmbed } from "../../lib/response";
+
+const COLOUR_ROLE = "1084108737679212594";
 
 const colour: Command = {
     name: "colour",
@@ -14,13 +17,11 @@ const colour: Command = {
     usage: "<hex> | <color>",
     examples: ["#ff0000", "Red"],
     messageRun: async (msg: Message, args?: string[]) => {
-        const role = msg.guild!.roles.cache.get("1084108737679212594");
+        const role = msg.guild!.roles.cache.get(COLOUR_ROLE);
         if (!role) {
             msg.reply({
                 embeds: [
-                    new EmbedBuilder()
-                        .setColor("Red")
-                        .setDescription("❌ Missing the colour role :(")
+                    errorEmbed("The colour role is missing from this server.")
                 ]
             });
             return;
@@ -28,11 +29,7 @@ const colour: Command = {
 
         if (!args![0]) {
             msg.reply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor("Orange")
-                        .setDescription("⚠️ Input a valid HEX code!")
-                ]
+                embeds: [errorEmbed("Please provide a valid HEX code.")]
             });
             return;
         }
@@ -43,11 +40,9 @@ const colour: Command = {
         } catch {
             msg.reply({
                 embeds: [
-                    new EmbedBuilder()
-                        .setColor("Red")
-                        .setDescription(
-                            "❌ That isn't a valid colour. Try a HEX code like `#5865f2`."
-                        )
+                    errorEmbed(
+                        "That isn't a valid colour. Try a HEX code like `#5865f2`."
+                    )
                 ]
             });
             return;
@@ -56,28 +51,20 @@ const colour: Command = {
         const hex = color.toString(16).padStart(6, "0");
 
         await msg.guild?.roles.edit(role.id, { color });
-
-        await msg.member?.roles.add(
-            role,
-            `Colour Preview: '#${hex}'`
-        );
+        await msg.member?.roles.add(role, `Colour preview #${hex}`);
         msg.reply({
             embeds: [
                 new EmbedBuilder()
                     .setColor(color)
                     .setTitle(`#${hex.toUpperCase()}`)
                     .setDescription(
-                        `🧪 This role will be removed <t:${Math.round(
+                        `This role is removed <t:${Math.round(
                             (Date.now() + 30000) / 1000
                         )}:R>`
                     )
                     .setThumbnail(
                         `https://singlecolorimage.com/get/${hex}/200x200`
                     )
-                    .setFooter({
-                        text: `Requested by ${msg.author.username}`,
-                        iconURL: msg.author.displayAvatarURL()
-                    })
             ]
         });
 
