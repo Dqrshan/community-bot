@@ -12,6 +12,7 @@ declare global {
             AI_URL?: string;
             TURSO_DATABASE_URL?: string;
             TURSO_AUTH_TOKEN?: string;
+            NVIDIA_API_KEY?: string;
         }
     }
 }

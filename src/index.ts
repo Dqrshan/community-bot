@@ -20,6 +20,7 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildPresences
     ],
@@ -27,7 +28,8 @@ const client = new Client({
         Partials.Channel,
         Partials.GuildMember,
         Partials.User,
-        Partials.Message
+        Partials.Message,
+        Partials.Reaction
     ],
     presence: {
         activities: [
