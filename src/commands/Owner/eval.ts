@@ -1,17 +1,21 @@
-import type { Message } from "discord.js";
+import { EmbedBuilder, Message } from "discord.js";
 import type { Command } from "../../lib/command";
 import { isThenable } from "../../lib/isThenable";
 import { inspect } from "util";
 
 const evalCommand: Command = {
     name: "eval",
-    description: "Evaluate a javascript code",
+    description: "Evaluate JavaScript code (owner only)",
     ownerOnly: true,
     aliases: ["js", "ev"],
     messageRun: async (msg: Message, args: string[] | undefined) => {
         if (!args || !args.length) {
             msg.reply({
-                content: "Please provide a code to eval!"
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor("Orange")
+                        .setDescription("⚠️ Please provide code to evaluate!")
+                ]
             });
             return;
         }
@@ -28,7 +32,7 @@ const evalCommand: Command = {
 
         if (output.length > 2000) {
             return msg.reply({
-                content: "Output was too long.. sent the result as a file",
+                content: "📤 Output was too long — sent the result as a file",
                 files: [{ attachment: Buffer.from(output), name: "output.js" }]
             });
         }
@@ -45,9 +49,6 @@ const Eval = async (
     if (flags.async) code = `(async () => {\n${code}\n})();`;
     let success = true;
     let result = null;
-
-    // @ts-ignore
-    const client = msg.client;
 
     try {
         result = eval(code);

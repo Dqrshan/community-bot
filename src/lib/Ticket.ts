@@ -10,6 +10,7 @@ import {
     Collection,
     EmbedBuilder,
     GuildMember,
+    MessageFlags,
     ModalBuilder,
     ModalSubmitInteraction,
     OverwriteType,
@@ -69,7 +70,7 @@ export default class Ticket {
 
         const embed = new EmbedBuilder()
             .setAuthor({
-                name: this.user.tag,
+                name: this.user.username,
                 iconURL: this.user.displayAvatarURL()
             })
             .setTitle(`Ticket Deleted - ${this.ticketNumber}`)
@@ -121,7 +122,7 @@ export default class Ticket {
             .setTitle(`Transcript - ${this.ticketNumber}`)
             .setColor("Blurple")
             .setAuthor({
-                name: this.user.tag,
+                name: this.user.username,
                 iconURL: this.user.displayAvatarURL()
             })
             .setThumbnail(this.user.displayAvatarURL())
@@ -169,7 +170,7 @@ export const askReasonForTicket = (ctx: ButtonInteraction) => {
             content: `You already have a ticket open: ${
                 tickets.get(ctx.user.id)!.channel
             }`,
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
 
     const inputRow = new ActionRowBuilder<TextInputBuilder>().setComponents([
@@ -237,7 +238,7 @@ export const createTicket = async (
     const emb = new EmbedBuilder()
         .setColor("Blurple")
         .setAuthor({
-            name: ticket.user.tag,
+            name: ticket.user.username,
             iconURL: ticket.user.avatarURL()!
         })
         .setDescription(
@@ -273,12 +274,12 @@ export const createTicket = async (
 
     interaction.reply({
         content: ticket.channel.toString(),
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
     });
 
     const em = new EmbedBuilder()
         .setAuthor({
-            name: ticket.user.tag,
+            name: ticket.user.username,
             iconURL: ticket.user.displayAvatarURL()
         })
         .setThumbnail(ticket.user.displayAvatarURL())
@@ -325,11 +326,11 @@ export const deleteTicket = (ctx: ButtonInteraction) => {
         return ctx.reply({
             content:
                 "The bot is currently deleting another ticket, please wait.",
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
     const ticket: Ticket = tickets.find(
         (t: Ticket) => t.channel?.id === ctx.channelId
     )!;
-    ctx.reply({ content: "Deleting ticket..", ephemeral: true });
+    ctx.reply({ content: "Deleting ticket..", flags: MessageFlags.Ephemeral });
     return ticket.delete(ctx.member! as GuildMember);
 };

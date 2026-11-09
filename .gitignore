@@ -4,3 +4,5 @@ dist/
 package-lock.json
 src/prisma/database.sqlite
 debug.config
+.catalystrc
+assets/

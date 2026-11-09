@@ -9,7 +9,7 @@ import {
 const colour: Command = {
     name: "colour",
     aliases: ["color", "c"],
-    description: "Adds a custom role with given colour",
+    description: "Preview a colour on the shared colour role",
     staffOnly: true,
     usage: "<hex> | <color>",
     examples: ["#ff0000", "Red"],
@@ -17,50 +17,72 @@ const colour: Command = {
         const role = msg.guild!.roles.cache.get("1084108737679212594");
         if (!role) {
             msg.reply({
-                content: "Missing the colour role :("
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor("Red")
+                        .setDescription("❌ Missing the colour role :(")
+                ]
             });
             return;
         }
 
         if (!args![0]) {
             msg.reply({
-                content: "Input a valid HEX code!"
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor("Orange")
+                        .setDescription("⚠️ Input a valid HEX code!")
+                ]
             });
             return;
         }
 
-        await msg.guild?.roles.edit(role.id, {
-            color: resolveColor(args![0] as ColorResolvable)
-        });
+        let color: number;
+        try {
+            color = resolveColor(args![0] as ColorResolvable);
+        } catch {
+            msg.reply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor("Red")
+                        .setDescription(
+                            "❌ That isn't a valid colour. Try a HEX code like `#5865f2`."
+                        )
+                ]
+            });
+            return;
+        }
+
+        const hex = color.toString(16).padStart(6, "0");
+
+        await msg.guild?.roles.edit(role.id, { color });
 
         await msg.member?.roles.add(
             role,
-            `Colour Test: '#${resolveColor(args![0] as ColorResolvable)
-                .toString(16)
-                .padStart(6, "0")}'`
+            `Colour Preview: '#${hex}'`
         );
         msg.reply({
             embeds: [
                 new EmbedBuilder()
-                    .setColor(resolveColor(args![0] as ColorResolvable))
-                    .setTitle(args![0])
+                    .setColor(color)
+                    .setTitle(`#${hex.toUpperCase()}`)
                     .setDescription(
-                        `⚠️ This role will be removed <t:${Math.round(
+                        `🧪 This role will be removed <t:${Math.round(
                             (Date.now() + 30000) / 1000
                         )}:R>`
                     )
                     .setThumbnail(
-                        `https://singlecolorimage.com/get/${resolveColor(
-                            args![0] as ColorResolvable
-                        )
-                            .toString(16)
-                            .padStart(6, "0")}/200x200`
+                        `https://singlecolorimage.com/get/${hex}/200x200`
                     )
+                    .setFooter({
+                        text: `Requested by ${msg.author.username}`,
+                        iconURL: msg.author.displayAvatarURL()
+                    })
             ]
         });
 
         setTimeout(() => {
-            msg.member?.roles.remove(role.id);
+            msg.member?.roles.remove(role.id).catch(() => {});
         }, 30 * 1000);
     }
 };

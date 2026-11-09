@@ -301,7 +301,7 @@ const processQueue = async (client: Client) => {
     while (client.queue.length > 0) {
         const msg = client.queue[0];
 
-        const ms = await msg.channel.messages.fetch({
+        const ms = await (msg.channel as TextChannel).messages.fetch({
             limit: 5
         });
 
@@ -320,7 +320,7 @@ const processQueue = async (client: Client) => {
 
         messages.reverse();
 
-        await msg.channel.sendTyping();
+        await (msg.channel as TextChannel).sendTyping();
         try {
             const res = await fetch(process.env.AI_URL!, {
                 method: "POST",
@@ -356,7 +356,7 @@ const processQueue = async (client: Client) => {
                                 .catch(() => {});
                             continue;
                         } else {
-                            await msg.channel
+                            await (msg.channel as TextChannel)
                                 .send({ content: str, allowedMentions })
                                 .catch(() => {});
                         }

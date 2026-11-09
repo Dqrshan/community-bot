@@ -1,0 +1,21 @@
+name: Keep Alive B
+
+on:
+  schedule:
+    - cron: "1-59/4 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping AppSail health endpoint
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" -m 30 \
+            "https://community-bot-50047512140.development.catalystappsail.in/ping")
+          if [ "$code" != "200" ]; then
+            echo "::error::Ping failed with HTTP $code"
+            exit 1
+          fi
+          echo "Ping OK (HTTP $code)"

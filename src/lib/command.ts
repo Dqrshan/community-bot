@@ -24,9 +24,7 @@ export async function loadCommands(client: Client) {
             x.endsWith(".js")
         );
         for (const file of files) {
-            const { default: command } = await import(
-                `../commands/${dir}/${file}`
-            );
+            const { default: command } = require(`../commands/${dir}/${file}`);
             if (!command || !command.name) continue;
             command.category = dir;
             client.commands.set(command.name, command);

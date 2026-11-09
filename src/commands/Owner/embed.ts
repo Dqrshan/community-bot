@@ -5,6 +5,7 @@ import {
     EmbedBuilder,
     Message,
     StringSelectMenuBuilder,
+    TextChannel,
     underscore
 } from "discord.js";
 import { Command } from "../../lib/command";
@@ -56,7 +57,7 @@ const Ticket = async (msg: Message) => {
             .setCustomId("NEW")
     );
 
-    msg.channel.send({ embeds: [embed], components: [button] });
+    (msg.channel as TextChannel).send({ embeds: [embed], components: [button] });
     await msg.delete().catch(() => {});
 };
 
@@ -150,13 +151,13 @@ ${dot} ${getRole(
                 .setStyle(ButtonStyle.Link)
                 .setLabel("Jump to top!")
         );
-    const first = await msg.channel.send({
+    const first = await (msg.channel as TextChannel).send({
         embeds: [about]
     });
     [info, roles, links].forEach(
-        async (embed) => await msg.channel.send({ embeds: [embed] })
+        async (embed) => await (msg.channel as TextChannel).send({ embeds: [embed] })
     );
-    await msg.channel.send({
+    await (msg.channel as TextChannel).send({
         components: [jumpToTop(first.url)]
     });
 
@@ -249,22 +250,22 @@ const Roles = async (msg: Message) => {
             })
         );
 
-    await msg.channel.send({
+    await (msg.channel as TextChannel).send({
         embeds: [e1],
         components: [
             new ActionRowBuilder<ButtonBuilder>().setComponents(b1),
             new ActionRowBuilder<ButtonBuilder>().setComponents(b12!)
         ]
     });
-    await msg.channel.send({
+    await (msg.channel as TextChannel).send({
         embeds: [e2],
         components: [new ActionRowBuilder<ButtonBuilder>().setComponents(b2)]
     });
-    await msg.channel.send({
+    await (msg.channel as TextChannel).send({
         embeds: [e4],
         components: [new ActionRowBuilder<ButtonBuilder>().setComponents(b3)]
     });
-    await msg.channel.send({
+    await (msg.channel as TextChannel).send({
         embeds: [e3],
         components: [
             new ActionRowBuilder<StringSelectMenuBuilder>().setComponents(menu)

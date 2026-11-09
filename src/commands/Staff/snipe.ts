@@ -4,7 +4,8 @@ import {
     ButtonBuilder,
     ButtonStyle,
     ActionRowBuilder,
-    Message
+    Message,
+    TextChannel
 } from "discord.js";
 import Snipes, { snipeObject } from "../../lib/snipes";
 
@@ -12,26 +13,39 @@ const snipe: Command = {
     name: "snipe",
     aliases: ["s"],
     staffOnly: true,
-    description: "Snipe deleted messages",
+    description: "Retrieve recently deleted messages in a channel",
     usage: "[index] [#channel]",
     examples: ["15", "<#1031108420880842752>", "20 <#1031108420880842752>"],
     messageRun: async (msg: Message, args?: string[]) => {
         let index: number = 1;
-        if (!args?.length) {
-            index = 1;
-        } else if (args[0] && !isNaN(parseInt(args[0]))) {
+        if (args?.[0] && !isNaN(parseInt(args[0]))) {
             index = parseInt(args[0]);
         }
-        const channel = msg.mentions.channels.first() ?? msg.channel;
+        const channel = (msg.mentions.channels.first() ?? msg.channel) as TextChannel;
 
         const snipes: snipeObject[] = Snipes.get(channel.id)!;
-        if (!snipes || !snipes.length) return msg.reply("Nothing to snipe!");
+        if (!snipes || !snipes.length) {
+            return msg.reply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor("Red")
+                        .setDescription("💀 Nothing to snipe here!")
+                ]
+            });
+        }
 
         const sniped = snipes[index - 1];
-        if (!sniped)
-            return msg.reply(
-                `There are only ${snipes.length} deleted message(s) in the database`
-            );
+        if (!sniped) {
+            return msg.reply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor("Orange")
+                        .setDescription(
+                            `⚠️ There are only \`${snipes.length}\` deleted message(s) stored for this channel.`
+                        )
+                ]
+            });
+        }
 
         const {
             message,
@@ -59,26 +73,26 @@ const snipe: Command = {
             )
             .setTitle(
                 `Deleted${
-                    channel.id === msg.channelId ? "" : ` in <#${channel.id}>`
+                    channel.id === msg.channelId ? "" : ` in #${channel.name}`
                 } <t:${Math.round(timestamp / 1000)}:R>`
             )
             .setFooter({
-                text: `${message} | ${index}/${snipes.length}`,
-                iconURL:
-                    "https://media.discordapp.net/attachments/929953693833527307/1099705712298434750/906948621486944288.png"
+                text: `${message} • ${index}/${snipes.length}`,
+                iconURL: msg.client.user?.displayAvatarURL()
             });
         if (content)
             embed.setDescription(
-                reference ? `╭ *replying to ${reference}*\n${content}` : content
+                reference
+                    ? `╭ *replying to ${reference}*\n${content}`
+                    : content
             );
         if (attachments.length === 1) embed.setImage(attachments[0]);
-        else if (attachments.length === 0) {
-        } else
-            embed.setFields({
+        else if (attachments.length > 1)
+            embed.addFields({
                 name: "Attachments",
-                value: attachments.length
-                    ? attachments.map((v, i) => `[${i + 1}](${v})`).join("・")
-                    : "None"
+                value: attachments
+                    .map((v, i) => `[${i + 1}](${v})`)
+                    .join("・")
             });
 
         const rawEs: EmbedBuilder[] = [];
@@ -105,7 +119,7 @@ const snipe: Command = {
             await (i as Message)
                 .reply({
                     embeds: rawEs,
-                    content: "Sniped Embeds"
+                    content: "📎 Sniped Embeds"
                 })
                 .catch(() => {});
         }

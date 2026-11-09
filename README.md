@@ -1,28 +1,52 @@
-# Bangalore Hub Utility & Helper
+# Namma Utils - Discord Bot
 
-> Generated from [Dqrshan/Bot-Framework](https://github.com/Dqrshan/Bot-Framework)
+![Namma Utils Banner](/home/darshan/Documents/GitHub/community-bot/assets/namma_utils_banner.jpg)
 
-Open source code of "**B'lore Utils**" bot.
+Discord community bot for the **Bangalore Hub** server — tickets, AFK tracking, snipes, role menus, audit logging and more.
+
+Built with **TypeScript**, **discord.js v14** and **Prisma** (SQLite).
 
 ## Join us!
 
 [![Bangalore Hub](https://discordapp.com/api/guilds/1023702510730494012/widget.png?style=banner3)](https://dsc.gg/bangalore)
 
-## Steps
+## Features
 
--   Fill in [`.env.example`](https://github.com/Dqrshan/Bangalore-Hub/blob/main/.env.example) and rename it to **`.env`**.
--   Install dependencies with the following command:
+- 🎫 Ticket system with transcripts & auto-close
+- 💤 AFK status with mention tracking
+- 💀 Snipe deleted messages
+- 🧩 Self-assignable role menus (grade / activity / ping / school roles)
+- 📜 Rule lookups, member stats, Urban Dictionary, AI chat
+- 🛡️ Audit logging & scheduled database backups
+
+## Requirements
+
+- Node.js 22+
+- A Discord bot token ([developer portal](https://discord.com/developers/applications))
+
+## Setup
 
 ```bash
+# 1. Install dependencies
 npm install
+
+# 2. Configure environment
+cp .env.example .env   # then fill in DISCORD_TOKEN
+
+# 3. Set up the database
+npm run db:start
+
+# 4. Build & run
+npm run build
+npm run dev:start
 ```
 
--   Run the code!
+## Development
 
 ```bash
-npm run start
+npm run watch:start
 ```
 
-## Developer
+## License
 
-[`@l.orenz`](https://discord.com/users/838620835282812969) on Discord
+ISC

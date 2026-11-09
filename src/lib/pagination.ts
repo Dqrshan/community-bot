@@ -5,6 +5,7 @@ import {
 	ButtonStyle,
 	EmbedBuilder,
 	Message,
+	MessageFlags
 } from 'discord.js';
 
 export const Pagination = async (
@@ -51,8 +52,8 @@ export const Pagination = async (
 			return true;
 		else
 			i.reply({
-				ephemeral: true,
-				content: 'This pagination is not for you!',
+				flags: MessageFlags.Ephemeral,
+				content: 'This pagination is not for you!'
 			}).catch(() => {});
 		return false;
 	};

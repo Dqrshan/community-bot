@@ -53,7 +53,7 @@ export default async function run(msg: Message) {
                 "https://media.discordapp.net/attachments/929953693833527307/1099705712298434750/906948621486944288.png"
         })
         .setAuthor({
-            name: msg.author.tag,
+            name: msg.author.username,
             iconURL: msg.author.displayAvatarURL()
         });
 

@@ -11,8 +11,8 @@ import { Command } from "../../lib/command";
 
 const avatar: Command = {
     name: "avatar",
-    description: "View the avatar (and banner) of a user",
-    aliases: ["av"],
+    description: "View the avatar, banner & server avatar of a user",
+    aliases: ["av", "pfp", "banner"],
     usage: "[userID] | [@user]",
     examples: ["<@838620835282812969>", "838620835282812969", " "],
     messageRun: async (msg: Message, args?: string[]) => {
@@ -20,7 +20,16 @@ const avatar: Command = {
         if (msg.mentions && msg.mentions.users && msg.mentions.users.size) {
             user = msg.mentions.users.first()!;
         } else if (args!.length) {
-            user = await msg.client.users.fetch(args![0]);
+            user = await msg.client.users.fetch(args![0]).catch(() => null!);
+            if (!user) {
+                return msg.reply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor("Red")
+                            .setDescription("❌ I couldn't find that user.")
+                    ]
+                });
+            }
         } else {
             user = msg.author;
         }
@@ -29,13 +38,12 @@ const avatar: Command = {
             : null;
 
         const base = new EmbedBuilder()
-            .setTitle(user.displayName)
+            .setTitle(`${user.displayName}'s Profile`)
             .setURL(`https://discord.com/users/${user.id}`)
             .setColor(member ? member.displayHexColor : "#2F3136")
             .setFooter({
                 text: user.id,
-                iconURL:
-                    "https://cdn.discordapp.com/emojis/906948621486944288.png"
+                iconURL: user.displayAvatarURL()
             });
 
         const avatar = EmbedBuilder.from(
@@ -56,49 +64,45 @@ const avatar: Command = {
             }
         }
 
-        const buttons = [
+        const mkButton = (
+            label: string,
+            id: string,
+            emoji: string
+        ): ButtonBuilder =>
             new ButtonBuilder()
-                .setLabel("Avatar")
-                .setCustomId("_A")
-                .setStyle(ButtonStyle.Secondary),
-            new ButtonBuilder()
-                .setLabel("Banner")
-                .setCustomId("_B")
-                .setStyle(ButtonStyle.Secondary),
-            new ButtonBuilder()
-                .setLabel("Server")
-                .setCustomId("_S")
-                .setStyle(ButtonStyle.Secondary)
+                .setLabel(label)
+                .setCustomId(id)
+                .setEmoji(emoji)
+                .setStyle(ButtonStyle.Secondary);
+
+        const allButtons = [
+            mkButton("Avatar", "_A", "🖼️"),
+            mkButton("Banner", "_B", "🎨"),
+            mkButton("Server", "_S", "🏠")
         ];
-        let sentButtons: ButtonBuilder[] = [];
+        let activeButtons: ButtonBuilder[] = [];
 
         const row = new ActionRowBuilder<ButtonBuilder>();
-
         let initial: Message;
+
         if (member && member.avatar && user.banner) {
-            initial = await msg.reply({
-                components: [row.setComponents(buttons)],
-                embeds: [avatar]
-            });
-            sentButtons = buttons;
+            activeButtons = allButtons;
         } else if (member && member.avatar && !user.banner) {
-            initial = await msg.reply({
-                components: [row.setComponents(buttons[0], buttons[2])],
-                embeds: [avatar]
-            });
-            sentButtons.push(buttons[0], buttons[2]);
+            activeButtons = [allButtons[0], allButtons[2]];
         } else if (user.banner) {
-            initial = await msg.reply({
-                components: [row.setComponents(buttons[0], buttons[1])],
-                embeds: [avatar]
-            });
-            sentButtons.push(buttons[0], buttons[1]);
-        } else {
-            initial = await msg.reply({
-                embeds: [avatar]
-            });
-            sentButtons = [];
+            activeButtons = [allButtons[0], allButtons[1]];
         }
+
+        if (activeButtons.length) {
+            initial = await msg.reply({
+                components: [row.setComponents(activeButtons)],
+                embeds: [avatar]
+            });
+        } else {
+            initial = await msg.reply({ embeds: [avatar] });
+        }
+
+        if (!activeButtons.length) return;
 
         const collector = initial.createMessageComponentCollector({
             componentType: ComponentType.Button,
@@ -108,25 +112,13 @@ const avatar: Command = {
 
         collector.on("collect", async (ctx) => {
             await ctx.deferUpdate().catch(() => {});
-            if (ctx.customId === "_A") {
-                await initial
-                    .edit({
-                        embeds: [avatar]
-                    })
-                    .catch(() => {});
-            } else if (ctx.customId === "_B") {
-                await initial
-                    .edit({
-                        embeds: [banner]
-                    })
-                    .catch(() => {});
-            } else if (ctx.customId === "_S") {
-                await initial
-                    .edit({
-                        embeds: [server]
-                    })
-                    .catch(() => {});
-            }
+            const view =
+                ctx.customId === "_A"
+                    ? avatar
+                    : ctx.customId === "_B"
+                    ? banner
+                    : server;
+            await initial.edit({ embeds: [view] }).catch(() => {});
             collector.resetTimer();
         });
 
@@ -135,9 +127,7 @@ const avatar: Command = {
                 .edit({
                     components: [
                         row.setComponents(
-                            sentButtons.length
-                                ? sentButtons.map((b) => b.setDisabled(true))
-                                : []
+                            activeButtons.map((b) => b.setDisabled(true))
                         )
                     ]
                 })

@@ -1,4 +1,3 @@
-import { verifyString } from "discord.js";
 import util from "util";
 
 export const sleep = util.promisify(setTimeout);
@@ -15,7 +14,7 @@ export const chunkify = (arr: any[], len: number) => {
 
 export const splitContent = (content: string, limit: number) => {
     const char = [new RegExp(`.{1,${limit}}`, "g"), "\n"];
-    const text = verifyString(content);
+    const text = String(content);
     if (text.length <= limit) return [text];
     let splitText = [text];
 

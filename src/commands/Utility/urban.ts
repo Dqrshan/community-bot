@@ -1,20 +1,28 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder, TextChannel } from "discord.js";
 import { Command } from "../../lib/command";
 import axios from "axios";
 import { Pagination } from "../../lib/pagination";
 
 const urban: Command = {
     name: "urban",
-    description: "Urban Dictionary",
-    aliases: ["dictionary", "define"],
+    description: "Look up words on Urban Dictionary",
+    aliases: ["dictionary", "define", "ud"],
     usage: "<query>",
-    examples: ["Darshan"],
+    examples: ["Darshan", " Based"],
     messageRun: async (msg, args) => {
         if (!args?.length) {
-            msg.reply("Please input a query!");
+            msg.reply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor("Red")
+                        .setDescription(
+                            "❌ Please provide a word to look up!"
+                        )
+                ]
+            });
             return;
         }
-        msg.channel.sendTyping();
+        await (msg.channel as TextChannel).sendTyping();
         const query = args.join(" ");
         const {
             data: { list }
@@ -23,31 +31,43 @@ const urban: Command = {
                 query
             )}`
         );
-        if (!list) {
-            msg.reply("I couldn't find what you were looking for!");
+        if (!list || !list.length) {
+            msg.reply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor("Red")
+                        .setDescription(
+                            "❌ I couldn't find what you were looking for!"
+                        )
+                ]
+            });
             return;
         }
 
         const pages: EmbedBuilder[] = [];
-        // const [fetch] = list;
         (list as any[]).forEach((x) => {
             const em = new EmbedBuilder()
                 .setColor("Blurple")
                 .setTitle(x.word)
                 .setURL(x.permalink)
+                .setAuthor({ name: "📖 Urban Dictionary" })
                 .setDescription(clean(x.definition))
                 .addFields(
                     {
-                        name: "Example",
-                        value: clean(x.example) ?? "None",
-                        inline: true
+                        name: "✏️ Example",
+                        value: clean(x.example) || "None",
+                        inline: false
                     },
                     {
                         name: "Votes",
-                        value: `👍 ${x.thumbs_up}・👎 ${x.thumbs_down}`,
+                        value: `👍 ${x.thumbs_up.toLocaleString()}・👎 ${x.thumbs_down.toLocaleString()}`,
                         inline: true
                     }
-                );
+                )
+                .setFooter({
+                    text: `Requested by ${msg.author.username}`,
+                    iconURL: msg.author.displayAvatarURL()
+                });
 
             pages.push(em);
         });
@@ -68,7 +88,8 @@ const urban: Command = {
 export default urban;
 
 const clean = (x: string) => {
-    return x.length > 1000
-        ? x.replaceAll("[", "").replaceAll("]", "").substring(0, 997) + "..."
-        : x.replaceAll("[", "").replaceAll("]", "");
+    const stripped = x.replaceAll("[", "").replaceAll("]", "");
+    return stripped.length > 1000
+        ? stripped.substring(0, 997) + "..."
+        : stripped;
 };

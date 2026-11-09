@@ -1,4 +1,4 @@
-import { type GuildMember, type Interaction } from "discord.js";
+import { type GuildMember, type Interaction, MessageFlags } from "discord.js";
 import { gradeRoles, schoolRoles } from "../config";
 import { askReasonForTicket, createTicket, deleteTicket } from "../lib/Ticket";
 
@@ -17,7 +17,7 @@ export default async function run(ctx: Interaction) {
     if (ctx.isButton()) {
         if (ctx.customId.startsWith("a-") || ctx.customId.startsWith("p-")) {
             await ctx
-                .deferReply({ ephemeral: true, fetchReply: true })
+                .deferReply({ flags: MessageFlags.Ephemeral, fetchReply: true })
                 .catch(() => {});
             const id = ctx.customId.replace("a-", "").replace("p-", "");
             const role = ctx.guild.roles.cache.get(id);
@@ -50,7 +50,7 @@ export default async function run(ctx: Interaction) {
             }
         } else if (ctx.customId.startsWith("g-")) {
             await ctx
-                .deferReply({ ephemeral: true, fetchReply: true })
+                .deferReply({ flags: MessageFlags.Ephemeral, fetchReply: true })
                 .catch(() => {});
             const id = ctx.customId.replace("g-", "");
             const role = ctx.guild.roles.cache.get(id);
@@ -89,7 +89,7 @@ export default async function run(ctx: Interaction) {
 
     if (ctx.isStringSelectMenu() && ctx.customId === "SCHOOL") {
         await ctx
-            .deferReply({ ephemeral: true, fetchReply: true })
+            .deferReply({ flags: MessageFlags.Ephemeral, fetchReply: true })
             .catch(() => {});
         if (
             (ctx.member as GuildMember).roles.cache.some((r) =>
