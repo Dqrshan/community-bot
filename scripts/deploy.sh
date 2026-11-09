@@ -6,7 +6,7 @@ set -a; . ./.env; set +a
 START_CMD="TURSO_DATABASE_URL=${TURSO_DATABASE_URL} \
 TURSO_AUTH_TOKEN=${TURSO_AUTH_TOKEN} node dist/index.js"
 
-catalyst deploy appsail -ni --command "$START_CMD"
+catalyst deploy appsail -ni --name community-bot --command "$START_CMD"
 
 sleep 5
 curl -s -m 20 \
