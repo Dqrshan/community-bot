@@ -9,6 +9,10 @@ export const prefix = "+";
 
 export const guildId = "1023702510730494012";
 
+export const welcomeCh = "1031108420880842752";
+export const suggestionsCh = "1513518749356003479";
+export const starboardCh = "1031246196565614633";
+
 export const aiChannel = "1138121964196732978";
 
 export const databaseCh = "1089230317430247495";
