@@ -5,6 +5,7 @@
 	"main": "dist/index.js",
 	"scripts": {
 		"build": "tsc",
+		"deploy": "bash scripts/deploy.sh",
 		"dev:start": "node dist/index.js",
 		"start:prod": "node dist/index.js",
 		"watch:start": "tsc-watch --onSuccess \"node ./dist/index.js\""
