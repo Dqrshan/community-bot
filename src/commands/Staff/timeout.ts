@@ -4,6 +4,7 @@ import { Command } from "../../lib/command";
 import { replyError, replySuccess } from "../../lib/response";
 
 const MAX_TIMEOUT = 28 * 24 * 60 * 60 * 1000;
+const MUTED_ROLE = "1034807492900818954";
 
 const timeout: Command = {
     name: "timeout",
@@ -41,6 +42,16 @@ const timeout: Command = {
             return replyError(msg, "You can't timeout yourself.");
         }
 
+        if (
+            msg.member!.roles.highest.position <=
+            target.roles.highest.position
+        ) {
+            return replyError(
+                msg,
+                "You can't timeout a member with a role equal to or higher than yours."
+            );
+        }
+
         if (!target.moderatable) {
             return replyError(
                 msg,
@@ -75,6 +86,13 @@ const timeout: Command = {
             duration,
             `Timed out by ${msg.author.tag} (${msg.author.id})`
         );
+
+        const mutedRole = msg.guild!.roles.cache.get(MUTED_ROLE);
+        if (mutedRole && !target.roles.cache.has(mutedRole.id)) {
+            await target.roles
+                .add(mutedRole, `Timed out by ${msg.author.tag}`)
+                .catch(() => {});
+        }
 
         return replySuccess(
             msg,
