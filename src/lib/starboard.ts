@@ -1,6 +1,7 @@
 import { Message, TextChannel } from "discord.js";
 import { deleteStar, findStar, writeStar } from "./db";
 import { DOT } from "./response";
+import { emoji } from "./emojis";
 import { starboardCh } from "../config";
 import {
     actionRow,
@@ -26,15 +27,13 @@ const messageLink = (msg: Message) =>
 
 const boardCard = (msg: Message, count: number) => {
     const content = msg.content?.trim();
-    const channelName =
-        (msg.channel as TextChannel | undefined)?.name ?? "unknown";
 
     const container = card(
         COLORS.gold,
         section(
             [
-                `## ⭐ ${count}`,
-                `-# #${channelName} ${DOT} ${msg.author.username}`
+                `## ${emoji("star")} ${count}`,
+                `-# <#${msg.channelId}> ${DOT} <@${msg.author.id}>`
             ],
             thumb(
                 msg.author.displayAvatarURL({ size: 128 }),
@@ -54,10 +53,11 @@ const boardCard = (msg: Message, count: number) => {
         .map((a) => a.url);
 
     if (images.length)
-        add(container, divider(), gallery(images, "Starred attachment"));
+        add(container, gallery(images, "Starred attachment"));
 
     add(
         container,
+        divider(),
         actionRow(linkButton("View message", messageLink(msg)))
     );
 
@@ -92,17 +92,27 @@ export const syncStar = async (msg: Message) => {
                 .catch(() => null);
             if (!boardMsg) {
                 const posted = await channel
-                    .send({ components: [container], flags: V2 })
+                    .send({
+                        components: [container],
+                        flags: V2,
+                        allowedMentions: { parse: [] }
+                    })
                     .catch(() => null);
                 if (posted) await writeStar(starRow(msg, count, posted.id));
                 return;
             }
-            await editV2(boardMsg, [container]);
+            await editV2(boardMsg, [container], {
+                allowedMentions: { parse: [] }
+            });
             await writeStar(starRow(msg, count, existing.board));
         } else {
             if (!channel) return;
             const posted = await channel
-                .send({ components: [container], flags: V2 })
+                .send({
+                    components: [container],
+                    flags: V2,
+                    allowedMentions: { parse: [] }
+                })
                 .catch(() => null);
             if (!posted) return;
             await writeStar(starRow(msg, count, posted.id));

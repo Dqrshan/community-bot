@@ -39,6 +39,11 @@ change the set.
 
 ## Upload
 
+Upload the PNGs as **application emojis** (Bot → Emojis) so they are available
+to the bot in every server. The names must match the file names above;
+`src/lib/emojis.ts` fetches them on startup and falls back to unicode when one
+is missing.
+
 Discord does not accept SVG for emoji uploads — use the PNGs in `generated/png`
 and name them after the file (e.g. `tick`). Uploading them in the same order as
 the table keeps the set tidy.

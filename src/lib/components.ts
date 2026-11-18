@@ -1,4 +1,5 @@
 import type { Message, MessageEditOptions } from "discord.js";
+import { emoji } from "./emojis";
 import {
     ActionRowBuilder,
     ButtonBuilder,
@@ -108,7 +109,17 @@ export const statusContainer = (kind: StatusKind, body: string) =>
                 ? COLORS.success
                 : COLORS.info
         )
-        .addTextDisplayComponents(text(body));
+        .addTextDisplayComponents(
+            text(
+                `${emoji(
+                    kind === "error"
+                        ? "cross"
+                        : kind === "success"
+                        ? "tick"
+                        : "info"
+                )} ${body}`
+            )
+        );
 
 export const attachmentRow = (name: string) =>
     new FileBuilder().setURL(`attachment://${name}`);

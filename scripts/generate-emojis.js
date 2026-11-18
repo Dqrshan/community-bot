@@ -23,26 +23,26 @@ const PNG = path.join(OUT, "png");
 
 // name -> [raw icon, base color]
 const EMOJIS = {
-    tick: ["Check", "#57F287"],
+    tick: ["Check", "#2FBF71"],
     cross: ["Close", "#ED4245"],
-    warn: ["Exclamation", "#FEE75C"],
+    warn: ["Exclamation", "#D99E00"],
     info: ["Information", "#5865F2"],
-    staff: ["ShieldStar", "#7C5CFC"],
-    ticket: ["Ticket", "#9B59B6"],
+    staff: ["ShieldStar", "#6D4FD6"],
+    ticket: ["Ticket", "#8E44AD"],
     idea: ["Speech3", "#5865F2"],
-    upvote: ["ThumbsUp", "#57F287"],
+    upvote: ["ThumbsUp", "#2FBF71"],
     downvote: ["ThumbsDown", "#ED4245"],
-    star: ["Star", "#F1C40F"],
-    pin: ["Pin", "#E67E22"],
-    clock: ["Time", "#3498DB"],
-    link: ["Link", "#1ABC9C"],
-    announce: ["Announcement2", "#7289DA"],
-    boost: ["Boost10", "#FF73FA"],
-    gift: ["Gift", "#EB459E"],
-    event: ["Event", "#B57BFF"],
-    welcome: ["Sparkles", "#57F287"],
-    rules: ["Shield2", "#7F8C8D"],
-    trophy: ["Trophy", "#F1C40F"]
+    star: ["Star", "#D9A400"],
+    pin: ["Pin", "#D35400"],
+    clock: ["Time", "#2E86C1"],
+    link: ["Link", "#16A085"],
+    announce: ["Announcement2", "#5E70C4"],
+    boost: ["Boost10", "#E64FCF"],
+    gift: ["Gift", "#D93F8F"],
+    event: ["Event", "#9B6BE8"],
+    welcome: ["Sparkles", "#2FBF71"],
+    rules: ["Shield2", "#6F7B7C"],
+    trophy: ["Trophy", "#D9A400"]
 };
 
 const hexToRgb = (hex) => {
@@ -110,7 +110,7 @@ for (const [name, [iconName, base]] of Object.entries(EMOJIS)) {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 ${SIZE} ${SIZE}" fill="none">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${lighten(base, 0.3)}"/>
+      <stop offset="0%" stop-color="${lighten(base, 0.22)}"/>
       <stop offset="100%" stop-color="${base}"/>
     </linearGradient>
   </defs>

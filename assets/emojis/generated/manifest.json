@@ -2,7 +2,7 @@
   {
     "name": "tick",
     "icon": "Check",
-    "color": "#57F287"
+    "color": "#2FBF71"
   },
   {
     "name": "cross",
@@ -12,7 +12,7 @@
   {
     "name": "warn",
     "icon": "Exclamation",
-    "color": "#FEE75C"
+    "color": "#D99E00"
   },
   {
     "name": "info",
@@ -22,12 +22,12 @@
   {
     "name": "staff",
     "icon": "ShieldStar",
-    "color": "#7C5CFC"
+    "color": "#6D4FD6"
   },
   {
     "name": "ticket",
     "icon": "Ticket",
-    "color": "#9B59B6"
+    "color": "#8E44AD"
   },
   {
     "name": "idea",
@@ -37,7 +37,7 @@
   {
     "name": "upvote",
     "icon": "ThumbsUp",
-    "color": "#57F287"
+    "color": "#2FBF71"
   },
   {
     "name": "downvote",
@@ -47,56 +47,56 @@
   {
     "name": "star",
     "icon": "Star",
-    "color": "#F1C40F"
+    "color": "#D9A400"
   },
   {
     "name": "pin",
     "icon": "Pin",
-    "color": "#E67E22"
+    "color": "#D35400"
   },
   {
     "name": "clock",
     "icon": "Time",
-    "color": "#3498DB"
+    "color": "#2E86C1"
   },
   {
     "name": "link",
     "icon": "Link",
-    "color": "#1ABC9C"
+    "color": "#16A085"
   },
   {
     "name": "announce",
     "icon": "Announcement2",
-    "color": "#7289DA"
+    "color": "#5E70C4"
   },
   {
     "name": "boost",
     "icon": "Boost10",
-    "color": "#FF73FA"
+    "color": "#E64FCF"
   },
   {
     "name": "gift",
     "icon": "Gift",
-    "color": "#EB459E"
+    "color": "#D93F8F"
   },
   {
     "name": "event",
     "icon": "Event",
-    "color": "#B57BFF"
+    "color": "#9B6BE8"
   },
   {
     "name": "welcome",
     "icon": "Sparkles",
-    "color": "#57F287"
+    "color": "#2FBF71"
   },
   {
     "name": "rules",
     "icon": "Shield2",
-    "color": "#7F8C8D"
+    "color": "#6F7B7C"
   },
   {
     "name": "trophy",
     "icon": "Trophy",
-    "color": "#F1C40F"
+    "color": "#D9A400"
   }
 ]

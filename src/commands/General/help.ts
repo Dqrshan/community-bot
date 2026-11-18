@@ -14,6 +14,7 @@ import {
     V2
 } from "../../lib/components";
 import { DOT } from "../../lib/response";
+import { emoji } from "../../lib/emojis";
 import { links, owners } from "../../config";
 
 const CATEGORIES: Record<string, string> = {
@@ -21,6 +22,13 @@ const CATEGORIES: Record<string, string> = {
     Utility: "Handy tools and server utilities",
     Staff: "Moderation tools for staff",
     Owner: "Restricted to the bot owners"
+};
+
+const CATEGORY_EMOJI: Record<string, "info" | "link" | "staff" | "trophy"> = {
+    General: "info",
+    Utility: "link",
+    Staff: "staff",
+    Owner: "trophy"
 };
 
 const help: Command = {
@@ -142,7 +150,7 @@ const help: Command = {
             add(
                 container,
                 text(
-                    `### ${dir} ${DOT} ${commands.size}\n${
+                    `### ${emoji(CATEGORY_EMOJI[dir] ?? "info")} ${dir} ${DOT} ${commands.size}\n${
                         CATEGORIES[dir] ?? ""
                     }\n${commands.map((x) => `\`${x.name}\``).join(` ${DOT} `)}`
                 )

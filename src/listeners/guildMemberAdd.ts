@@ -2,6 +2,7 @@ import { AttachmentBuilder, GuildMember, TextChannel } from "discord.js";
 import { existsSync } from "fs";
 import { guildId, voiceCh, welcomeCh } from "../config";
 import { DOT } from "../lib/response";
+import { emoji } from "../lib/emojis";
 import {
     card,
     COLORS,
@@ -41,7 +42,7 @@ export default async function run(member: GuildMember) {
             ),
             section(
                 [
-                    `## Welcome, ${member.displayName}!`,
+                    `## ${emoji("welcome")} Welcome, ${member.displayName}!`,
                     `-# ${member.user.username} ${DOT} Member #${guild.memberCount}`
                 ],
                 thumb(member.displayAvatarURL({ size: 256 }), member.displayName)

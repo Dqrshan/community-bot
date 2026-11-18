@@ -9,6 +9,7 @@ import {
     text
 } from "./components";
 import { DOT } from "./response";
+import { emoji } from "./emojis";
 
 /**
  * Single source of truth for how a suggestion looks, used by the
@@ -31,7 +32,7 @@ export const suggestionCard = (
 
     const container = card(
         accent,
-        text(`## Suggestion #${suggestion.id}`),
+        text(`## ${emoji("idea")} Suggestion #${suggestion.id}`),
         text(suggestion.content)
     );
 
@@ -68,11 +69,11 @@ export const suggestionCard = (
         container.addActionRowComponents(
             actionRow(
                 new ButtonBuilder()
-                    .setEmoji("👍")
+                    .setEmoji(emoji("upvote"))
                     .setCustomId(`su_${suggestion.guild}_${suggestion.id}`)
                     .setStyle(ButtonStyle.Success),
                 new ButtonBuilder()
-                    .setEmoji("👎")
+                    .setEmoji(emoji("downvote"))
                     .setCustomId(`sd_${suggestion.guild}_${suggestion.id}`)
                     .setStyle(ButtonStyle.Danger)
             )

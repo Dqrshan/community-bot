@@ -10,6 +10,7 @@ import {
     V2
 } from "../../lib/components";
 import { DOT } from "../../lib/response";
+import { emoji } from "../../lib/emojis";
 
 const ping: Command = {
     name: "ping",
@@ -33,7 +34,7 @@ const ping: Command = {
             COLORS.info,
             section(
                 [
-                    "## Pong",
+                    `## ${emoji("clock")} Pong`,
                     "-# Live connection health of the bot"
                 ],
                 thumb(

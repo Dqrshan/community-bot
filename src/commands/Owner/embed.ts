@@ -27,6 +27,7 @@ import {
     pingRoles
 } from "../../config";
 import { stripIndents } from "common-tags";
+import { emoji } from "../../lib/emojis";
 
 const subs = ["roles", "ticket", "about"];
 
@@ -59,22 +60,17 @@ const command: Command = {
 export default command;
 
 const Ticket = async (msg: Message) => {
+    // Restored from the original embed panel: same copy and NEW button id.
     const container = card(
         COLORS.info,
-        section(
-            [
-                "## Need help?",
-                "Open a ticket and our staff will get back to you as soon as possible.",
-                `-# Please read the rules before opening one`
-            ],
-            thumb(msg.client.user!.displayAvatarURL({ size: 128 }), "Bot avatar")
-        ),
+        text(`# ${emoji("ticket")} Ticket`),
+        text("To create a ticket, click the button below"),
         divider(),
         actionRow(
             new ButtonBuilder()
                 .setStyle(ButtonStyle.Success)
                 .setLabel("Create Ticket")
-                .setEmoji("🎫")
+                .setEmoji(emoji("ticket"))
                 .setCustomId("NEW")
         )
     );

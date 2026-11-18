@@ -10,6 +10,7 @@ import {
     V2
 } from "../../lib/components";
 import { DOT } from "../../lib/response";
+import { emoji } from "../../lib/emojis";
 
 const command: Command = {
     name: "debug",
@@ -25,7 +26,7 @@ const command: Command = {
             COLORS.info,
             section(
                 [
-                    "# Bot diagnostics",
+                    `# ${emoji("info")} Bot diagnostics`,
                     "-# Runtime and connection statistics"
                 ],
                 thumb(

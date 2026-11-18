@@ -8,6 +8,7 @@ import {
     text
 } from "./components";
 import { DOT } from "./response";
+import { emoji } from "./emojis";
 
 /**
  * Single source of truth for a poll's layout, shared by the creation
@@ -33,7 +34,7 @@ export const pollCard = (
 
     return card(
         COLORS.info,
-        text("## Poll"),
+        text(`## ${emoji("info")} Poll`),
         text(poll.question),
         divider(),
         text(rows.join("\n\n")),

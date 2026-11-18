@@ -10,8 +10,13 @@ import Snipes from "../lib/snipes";
 import Ticket, { tickets } from "../lib/Ticket";
 import { backupToChannel } from "../lib/backup";
 import { startReminders } from "../lib/reminders";
+import { loadEmojis } from "../lib/emojis";
 
 export default async function run(client: Client) {
+    // cache the application emojis used in responses
+    const loadedEmojis = await loadEmojis(client);
+    client.console.success(`Loaded ${loadedEmojis} application emoji(s)`);
+
     // load snipes
     const loaded = await Snipes.load();
     client.console.success(`Loaded ${loaded} sniped channel(s)`);

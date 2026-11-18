@@ -37,6 +37,7 @@ import {
     V2
 } from "./components";
 import { DOT } from "./response";
+import { emoji } from "./emojis";
 
 export default class Ticket {
     ticketNumber: number;
@@ -79,7 +80,7 @@ export default class Ticket {
             COLORS.danger,
             section(
                 [
-                    `## Ticket Deleted ${DOT} ${this.ticketNumber}`,
+                    `## ${emoji("cross")} Ticket Deleted ${DOT} ${this.ticketNumber}`,
                     `-# Closed by ${member.user.username}`
                 ],
                 thumb(
@@ -126,7 +127,7 @@ export default class Ticket {
             COLORS.info,
             section(
                 [
-                    `## Transcript ${DOT} ${this.ticketNumber}`,
+                    `## ${emoji("ticket")} Transcript ${DOT} ${this.ticketNumber}`,
                     `-# ${this.user.username}`
                 ],
                 thumb(
@@ -244,7 +245,7 @@ export const createTicket = async (
         COLORS.info,
         section(
             [
-                `## Ticket ${DOT} ${ticket.ticketNumber}`,
+                `## ${emoji("ticket")} Ticket ${DOT} ${ticket.ticketNumber}`,
                 `Welcome ${ticket.user}, our ${staff
                     .map((r) => `<@&${r}>`)
                     .join(" ")} will be with you shortly.`,
@@ -285,7 +286,7 @@ export const createTicket = async (
         COLORS.success,
         section(
             [
-                `## Ticket Opened ${DOT} ${ticket.ticketNumber}`,
+                `## ${emoji("ticket")} Ticket Opened ${DOT} ${ticket.ticketNumber}`,
                 `-# ${ticket.user.username}`
             ],
             thumb(
