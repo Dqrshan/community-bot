@@ -1,7 +1,15 @@
-import { Message } from "discord.js";
+import { AttachmentBuilder, Message } from "discord.js";
 import type { Command } from "../../lib/command";
+import {
+    attachmentRow,
+    card,
+    COLORS,
+    divider,
+    statusContainer,
+    text,
+    V2
+} from "../../lib/components";
 import { isThenable } from "../../lib/isThenable";
-import { errorEmbed } from "../../lib/response";
 import { inspect } from "util";
 
 const evalCommand: Command = {
@@ -11,10 +19,15 @@ const evalCommand: Command = {
     aliases: ["js", "ev"],
     messageRun: async (msg: Message, args: string[] | undefined) => {
         if (!args || !args.length) {
-            msg.reply({
-                embeds: [errorEmbed("Please provide code to evaluate.")]
+            return msg.reply({
+                components: [
+                    statusContainer(
+                        "error",
+                        "Please provide code to evaluate."
+                    )
+                ],
+                flags: V2
             });
-            return;
         }
         const code = args.join(" ");
 
@@ -27,14 +40,41 @@ const evalCommand: Command = {
             ? "```js\n" + result + "\n```"
             : "**ERROR**:\n```bash\n" + result + "\n```";
 
-        if (output.length > 2000) {
+        if (output.length > 3400) {
             return msg.reply({
-                content: "The output was too long. It has been sent as a file.",
-                files: [{ attachment: Buffer.from(output), name: "output.js" }]
+                components: [
+                    card(
+                        success ? COLORS.success : COLORS.danger,
+                        text(
+                            success
+                                ? "### Output"
+                                : "### Output (error)"
+                        ),
+                        divider(),
+                        text("-# The output was too long, so it was attached as a file."),
+                        attachmentRow("output.js")
+                    )
+                ],
+                files: [
+                    new AttachmentBuilder(Buffer.from(output), {
+                        name: "output.js"
+                    })
+                ],
+                flags: V2
             });
         }
 
-        return msg.reply({ content: output });
+        return msg.reply({
+            components: [
+                card(
+                    success ? COLORS.success : COLORS.danger,
+                    text(success ? "### Output" : "### Output (error)"),
+                    divider(),
+                    text(output)
+                )
+            ],
+            flags: V2
+        });
     }
 };
 

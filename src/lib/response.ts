@@ -1,26 +1,22 @@
-import { EmbedBuilder, type Message } from "discord.js";
+import type { Message } from "discord.js";
+import { V2, statusContainer } from "./components";
 
 export const DOT = "・";
 
-const base = (
-    color: Parameters<EmbedBuilder["setColor"]>[0],
-    description: string
-) => new EmbedBuilder().setColor(color).setDescription(description);
-
-export const successEmbed = (description: string) =>
-    base("Green", description);
-
-export const errorEmbed = (description: string) =>
-    base("Red", description);
-
-export const infoEmbed = (description: string) =>
-    base("Blurple", description);
-
 export const replySuccess = (msg: Message, description: string) =>
-    msg.reply({ embeds: [successEmbed(description)] });
+    msg.reply({
+        components: [statusContainer("success", description)],
+        flags: V2
+    });
 
 export const replyError = (msg: Message, description: string) =>
-    msg.reply({ embeds: [errorEmbed(description)] });
+    msg.reply({
+        components: [statusContainer("error", description)],
+        flags: V2
+    });
 
 export const replyInfo = (msg: Message, description: string) =>
-    msg.reply({ embeds: [infoEmbed(description)] });
+    msg.reply({
+        components: [statusContainer("info", description)],
+        flags: V2
+    });

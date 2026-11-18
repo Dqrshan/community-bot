@@ -1,6 +1,19 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder, TextChannel } from "discord.js";
+import {
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    TextChannel
+} from "discord.js";
 import { Command } from "../../lib/command";
-import { DOT, errorEmbed } from "../../lib/response";
+import {
+    card,
+    COLORS,
+    divider,
+    statusContainer,
+    text,
+    V2
+} from "../../lib/components";
+import { DOT } from "../../lib/response";
 import axios from "axios";
 import { Pagination } from "../../lib/pagination";
 
@@ -12,10 +25,15 @@ const urban: Command = {
     examples: [" Bangalore", " Based"],
     messageRun: async (msg, args) => {
         if (!args?.length) {
-            msg.reply({
-                embeds: [errorEmbed("Please provide a word to look up.")]
+            return msg.reply({
+                components: [
+                    statusContainer(
+                        "error",
+                        "Please provide a word to look up."
+                    )
+                ],
+                flags: V2
             });
-            return;
         }
         await (msg.channel as TextChannel).sendTyping();
         const query = args.join(" ");
@@ -27,43 +45,39 @@ const urban: Command = {
             )}`
         );
         if (!list || !list.length) {
-            msg.reply({
-                embeds: [
-                    errorEmbed(
+            return msg.reply({
+                components: [
+                    statusContainer(
+                        "error",
                         `I couldn't find any results for \`${query}\`.`
                     )
-                ]
+                ],
+                flags: V2
             });
-            return;
         }
 
-        const pages: EmbedBuilder[] = (list as any[]).map((x) => {
-            const em = new EmbedBuilder()
-                .setColor("Blurple")
-                .setAuthor({ name: "Urban Dictionary" })
-                .setTitle(x.word)
-                .setURL(x.permalink)
-                .setDescription(clean(x.definition))
-                .addFields(
-                    {
-                        name: "Example",
-                        value: clean(x.example) || "None",
-                        inline: false
-                    },
-                    {
-                        name: "Votes",
-                        value: `Upvotes ${DOT} ${x.thumbs_up.toLocaleString()}\nDownvotes ${DOT} ${x.thumbs_down.toLocaleString()}`,
-                        inline: false
-                    }
+        const pages: ContainerBuilder[] = (list as any[]).map((x, i) =>
+            card(
+                COLORS.info,
+                text(`## [${x.word}](${x.permalink})`),
+                text(`-# Urban Dictionary ${DOT} Result ${i + 1}`),
+                divider(),
+                text(clean(x.definition)),
+                divider(),
+                text(`**Example**\n${clean(x.example) || "None"}`),
+                divider(),
+                text(
+                    `**Votes** ${DOT} 👍 ${x.thumbs_up.toLocaleString()} ${DOT} 👎 ${x.thumbs_down.toLocaleString()}`
+                ),
+                text(
+                    `-# Requested by ${msg.author.username} ${DOT} Page ${
+                        i + 1
+                    } of ${list.length}`
                 )
-                .setFooter({
-                    text: `Requested by ${msg.author.username}`,
-                    iconURL: msg.author.displayAvatarURL()
-                });
-            return em;
-        });
+            )
+        );
 
-        await Pagination(msg, "", pages, [
+        await Pagination(msg, pages, [
             new ButtonBuilder()
                 .setStyle(ButtonStyle.Secondary)
                 .setCustomId("P")

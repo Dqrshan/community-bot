@@ -1,6 +1,7 @@
-import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { ButtonBuilder, ButtonStyle, ContainerBuilder } from "discord.js";
 import { Command } from "../../lib/command";
-import { DOT, infoEmbed } from "../../lib/response";
+import { card, COLORS, text } from "../../lib/components";
+import { DOT, replyInfo } from "../../lib/response";
 import { allStars } from "../../lib/db";
 import { Pagination } from "../../lib/pagination";
 
@@ -11,29 +12,26 @@ const stars: Command = {
     messageRun: async (msg) => {
         const rows = (await allStars()).sort((a, b) => b.stars - a.stars);
         if (!rows.length) {
-            msg.reply({
-                embeds: [infoEmbed("No messages have been starred yet.")]
-            });
+            replyInfo(msg, "No messages have been starred yet.");
             return;
         }
 
-        const pages: EmbedBuilder[] = [];
-        const chunks: typeof rows[] = [[]];
+        const chunks: (typeof rows)[] = [[]];
         rows.forEach((row) => {
             if (chunks[chunks.length - 1].length >= 10) chunks.push([]);
             chunks[chunks.length - 1].push(row);
         });
 
-        chunks.forEach((chunk, page) => {
+        const pages: ContainerBuilder[] = chunks.map((chunk, page) => {
             const start = page * 10;
-            const embed = new EmbedBuilder()
-                .setColor("Gold")
-                .setTitle("Starred messages")
-                .setDescription(
+            return card(
+                COLORS.gold,
+                text(`## Starred messages`),
+                text(
                     chunk
                         .map(
                             (row, i) =>
-                                `${start + i + 1} ${DOT} [Jump to message](${messageUrl(
+                                `**${start + i + 1}** ${DOT} [Jump to message](${messageUrl(
                                     row.guild,
                                     row.channel,
                                     row.message
@@ -42,14 +40,12 @@ const stars: Command = {
                                 } ${DOT} <@${row.author}>`
                         )
                         .join("\n")
-                )
-                .setFooter({
-                    text: `Page ${page + 1} of ${chunks.length}`
-                });
-            pages.push(embed);
+                ),
+                text(`-# Page ${page + 1} of ${chunks.length}`)
+            );
         });
 
-        await Pagination(msg, "", pages, [
+        await Pagination(msg, pages, [
             new ButtonBuilder()
                 .setStyle(ButtonStyle.Secondary)
                 .setCustomId("P")

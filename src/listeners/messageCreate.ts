@@ -1,10 +1,4 @@
-import {
-    ButtonBuilder,
-    ButtonStyle,
-    EmbedBuilder,
-    Message,
-    TextChannel
-} from "discord.js";
+import { ButtonBuilder, ButtonStyle, Message, TextChannel } from "discord.js";
 import { aiChannel, owners, prefix, staff } from "../config";
 import { chunkify } from "../lib/utils";
 import { Pagination } from "../lib/pagination";
@@ -15,7 +9,15 @@ import {
     findMentions,
     setMentions
 } from "../lib/db";
-import { errorEmbed, infoEmbed } from "../lib/response";
+import {
+    card,
+    COLORS,
+    divider,
+    statusContainer,
+    text as display,
+    V2
+} from "../lib/components";
+import { DOT } from "../lib/response";
 import { chatAsSudeep } from "../lib/ai";
 import emojiRegex from "emoji-regex";
 import ms from "ms";
@@ -28,11 +30,13 @@ export default async function run(msg: Message) {
     // handle commands
     if (botMention(msg)) {
         msg.reply({
-            embeds: [
-                infoEmbed(
+            components: [
+                statusContainer(
+                    "info",
                     `My prefix is \`${msg.client.prefix}\`\nUse \`${msg.client.prefix}help\` to view all commands`
                 )
-            ]
+            ],
+            flags: V2
         });
         return;
     }
@@ -52,9 +56,13 @@ export default async function run(msg: Message) {
         try {
             if (command.ownerOnly && !owners.includes(msg.author.id)) {
                 msg.reply({
-                    embeds: [
-                        errorEmbed("This command can only be used by the owners.")
-                    ]
+                    components: [
+                        statusContainer(
+                            "error",
+                            "This command can only be used by the owners."
+                        )
+                    ],
+                    flags: V2
                 });
                 return;
             }
@@ -64,22 +72,28 @@ export default async function run(msg: Message) {
                 !msg.member.roles.cache.some((r) => staff.includes(r.id))
             ) {
                 msg.reply({
-                    embeds: [
-                        errorEmbed("This command can only be used by the staff.")
-                    ]
+                    components: [
+                        statusContainer(
+                            "error",
+                            "This command can only be used by the staff."
+                        )
+                    ],
+                    flags: V2
                 });
                 return;
             }
             await command.messageRun(msg, args);
         } catch (error) {
             msg.reply({
-                embeds: [
-                    errorEmbed(
+                components: [
+                    statusContainer(
+                        "error",
                         error && error instanceof Error
                             ? `\`${error.name}\`: \`${error.message}\``
                             : `Error: ${error}`
                     )
-                ]
+                ],
+                flags: V2
             });
             msg.client.console.error(error);
         }
@@ -97,36 +111,40 @@ export default async function run(msg: Message) {
         if (mentionData) {
             mentions = JSON.parse(mentionData);
         }
-        const content = `Welcome back! You were AFK for ${(await ms)(
+        const content = `Welcome back! You were AFK for ${await ms(
             Date.now() - Number(data.timestamp),
             { long: true }
         )}`;
         if (mentions && mentions.length) {
-            if (mentions.length > 10) {
-                const pages: EmbedBuilder[] = [];
-                const chunks = chunkify(
-                    mentions
-                        .sort(
-                            (x: Mention, y: Mention) =>
-                                Number(y.timestamp) - Number(x.timestamp)
-                        )
-                        .map((v: Mention, i: number) => ({
-                            value: `\`${i + 1}\` <@!${v.member}>・[View](${
-                                v.message
-                            }) (<t:${Math.round(
-                                Number(v.timestamp) / 1000
-                            )}:R>)`
-                        })),
-                    10
-                );
+            const sorted = mentions.sort(
+                (x: Mention, y: Mention) =>
+                    Number(y.timestamp) - Number(x.timestamp)
+            );
+            const line = (v: Mention, i: number) =>
+                `\`${i + 1}\` <@!${v.member}> ${DOT} [View](${
+                    v.message
+                }) ${DOT} <t:${Math.round(
+                    Number(v.timestamp) / 1000
+                )}:R>`;
 
-                chunks.forEach((chunk) => {
-                    const em = new EmbedBuilder()
-                        .setTitle(`Mentions (${mentions.length})`)
-                        .setColor("Blurple")
-                        .setDescription(chunk.map((e) => e.value).join("\n"));
-                    pages.push(em);
-                });
+            if (mentions.length > 10) {
+                const chunks = chunkify(sorted, 10);
+                const pages = chunks.map((chunk, page) =>
+                    card(
+                        COLORS.info,
+                        display(`## Mentions (${mentions.length})`),
+                        display(content),
+                        divider(),
+                        display(
+                            chunk
+                                .map((v: Mention, i: number) =>
+                                    line(v, page * 10 + i)
+                                )
+                                .join("\n")
+                        ),
+                        display(`-# Page ${page + 1} of ${chunks.length}`)
+                    )
+                );
 
                 const buttons = [
                     new ButtonBuilder()
@@ -139,36 +157,33 @@ export default async function run(msg: Message) {
                         .setCustomId("_N")
                 ];
 
-                await Pagination(msg, content, pages, buttons);
+                await Pagination(msg, pages, buttons);
             } else {
-                const em = new EmbedBuilder()
-                    .setTitle(`Mentions (${mentions.length})`)
-                    .setColor("Blurple")
-                    .setDescription(
-                        mentions
-                            .sort(
-                                (x: Mention, y: Mention) =>
-                                    Number(y.timestamp) - Number(x.timestamp)
-                            )
-                            .map(
-                                (v: Mention, i: number) =>
-                                    `\`${i + 1}\` <@!${v.member}>・[View](${
-                                        v.message
-                                    }) (<t:${Math.round(
-                                        parseInt(String(v.timestamp)) / 1000
-                                    )}:R>)`
-                            )
-                            .join("\n")
-                    );
-
                 msg.reply({
-                    content,
-                    embeds: [em]
+                    components: [
+                        card(
+                            COLORS.info,
+                            display(`## Mentions (${mentions.length})`),
+                            display(content),
+                            divider(),
+                            display(
+                                sorted
+                                    .map((v: Mention, i: number) =>
+                                        line(v, i)
+                                    )
+                                    .join("\n")
+                            )
+                        )
+                    ],
+                    flags: V2
                 });
             }
             await deleteMentions(msg.guildId!, msg.author.id);
         } else {
-            msg.reply({ embeds: [infoEmbed(content)] });
+            msg.reply({
+                components: [statusContainer("info", content)],
+                flags: V2
+            });
         }
 
         await deleteAfk(msg.guildId!, msg.author.id);
@@ -188,12 +203,24 @@ export default async function run(msg: Message) {
 
             if (data) {
                 msg.reply({
-                    content: `**${member.displayName.replace(
-                        "[AFK] ",
-                        ""
-                    )}** is AFK: ${data.reason} - <t:${Math.round(
-                        Number(data.timestamp) / 1000
-                    )}:R>`
+                    components: [
+                        card(
+                            COLORS.info,
+                            display(
+                                `**${member.displayName.replace(
+                                    "[AFK] ",
+                                    ""
+                                )}** is AFK`
+                            ),
+                            display(data.reason ?? "AFK"),
+                            display(
+                                `-# <t:${Math.round(
+                                    Number(data.timestamp) / 1000
+                                )}:R>`
+                            )
+                        )
+                    ],
+                    flags: V2
                 });
                 const mentionData = await findMentions(
                     msg.guildId!,
@@ -255,11 +282,13 @@ export default async function run(msg: Message) {
             msg.client.console.error(error);
             await msg
                 .reply({
-                    embeds: [
-                        errorEmbed(
+                    components: [
+                        statusContainer(
+                            "error",
                             "Sudeep is taking a chai break. Try again in a bit."
                         )
-                    ]
+                    ],
+                    flags: V2
                 })
                 .catch(() => {});
         }

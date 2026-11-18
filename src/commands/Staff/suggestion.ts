@@ -1,8 +1,13 @@
-import { EmbedBuilder, Message, TextChannel } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import { Command } from "../../lib/command";
-import { DOT, errorEmbed, infoEmbed, successEmbed } from "../../lib/response";
-import { findSuggestion, resolveSuggestion } from "../../lib/db";
+import { editV2, statusContainer, V2 } from "../../lib/components";
+import {
+    countVotes,
+    findSuggestion,
+    resolveSuggestion
+} from "../../lib/db";
 import { suggestionsCh } from "../../config";
+import { suggestionCard } from "../../lib/suggestionCard";
 
 const suggestion: Command = {
     name: "suggestion",
@@ -17,17 +22,25 @@ const suggestion: Command = {
 
         if (action !== "approve" && action !== "deny") {
             msg.reply({
-                embeds: [
-                    infoEmbed(
-                        `Usage ${DOT} \`${msg.client.prefix}suggestion approve <id> [reason]\`\nUsage ${DOT} \`${msg.client.prefix}suggestion deny <id> [reason]\``
+                components: [
+                    statusContainer(
+                        "info",
+                        `**Usage**\n\`${msg.client.prefix}suggestion approve <id> [reason]\`\n\`${msg.client.prefix}suggestion deny <id> [reason]\``
                     )
-                ]
+                ],
+                flags: V2
             });
             return;
         }
         if (isNaN(id)) {
             msg.reply({
-                embeds: [errorEmbed("Please provide a valid suggestion ID.")]
+                components: [
+                    statusContainer(
+                        "error",
+                        "Please provide a valid suggestion ID."
+                    )
+                ],
+                flags: V2
             });
             return;
         }
@@ -35,15 +48,25 @@ const suggestion: Command = {
         const row = await findSuggestion(msg.guildId!, id);
         if (!row) {
             msg.reply({
-                embeds: [errorEmbed("I couldn't find that suggestion.")]
+                components: [
+                    statusContainer(
+                        "error",
+                        "I couldn't find that suggestion."
+                    )
+                ],
+                flags: V2
             });
             return;
         }
         if (row.status !== "pending") {
             msg.reply({
-                embeds: [
-                    infoEmbed(`Suggestion #${id} is already ${row.status}.`)
-                ]
+                components: [
+                    statusContainer(
+                        "info",
+                        `Suggestion #${id} is already ${row.status}.`
+                    )
+                ],
+                flags: V2
             });
             return;
         }
@@ -53,7 +76,13 @@ const suggestion: Command = {
         ) as TextChannel | undefined;
         if (!channel || !row.message) {
             msg.reply({
-                embeds: [errorEmbed("The suggestion message is missing.")]
+                components: [
+                    statusContainer(
+                        "error",
+                        "The suggestion message is missing."
+                    )
+                ],
+                flags: V2
             });
             return;
         }
@@ -63,31 +92,36 @@ const suggestion: Command = {
             .catch(() => null);
         if (!posted) {
             msg.reply({
-                embeds: [errorEmbed("The suggestion message is missing.")]
+                components: [
+                    statusContainer(
+                        "error",
+                        "The suggestion message is missing."
+                    )
+                ],
+                flags: V2
             });
             return;
         }
 
         const reason = args!.slice(2).join(" ") || null;
         const accepted = action === "approve";
+        const counts = await countVotes(msg.guildId!, id);
 
-        const embed = EmbedBuilder.from(posted.embeds[0].data)
-            .setColor(accepted ? "Green" : "Red")
-            .setFooter({
-                text: `Suggestion ${id} ${DOT} ${accepted ? "Implemented" : "Rejected"}`
-            });
-        if (reason) {
-            embed.addFields({
-                name: accepted ? "Resolution" : "Reason",
-                value: reason,
-                inline: false
-            });
-        }
-
-        await posted.edit({
-            embeds: [embed],
-            components: []
-        });
+        await editV2(
+            posted,
+            [
+                suggestionCard(
+                    {
+                        ...row,
+                        status: accepted ? "accepted" : "denied",
+                        reason,
+                        staff: msg.author.id
+                    },
+                    counts
+                )
+            ],
+            { allowedMentions: { parse: [] } }
+        );
         await resolveSuggestion(
             msg.guildId!,
             id,
@@ -97,11 +131,13 @@ const suggestion: Command = {
         );
 
         msg.reply({
-            embeds: [
-                successEmbed(
+            components: [
+                statusContainer(
+                    "success",
                     `Suggestion #${id} ${accepted ? "accepted" : "denied"}.`
                 )
-            ]
+            ],
+            flags: V2
         });
     }
 };

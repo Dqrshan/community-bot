@@ -1,14 +1,22 @@
-import {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    EmbedBuilder,
-    Message,
-    TextChannel
-} from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import { deleteStar, findStar, writeStar } from "./db";
 import { DOT } from "./response";
 import { starboardCh } from "../config";
+import {
+    actionRow,
+    add,
+    card,
+    COLORS,
+    divider,
+    editV2,
+    gallery,
+    isImageUrl,
+    linkButton,
+    section,
+    text,
+    thumb,
+    V2
+} from "./components";
 
 export const STAR = "⭐";
 export const THRESHOLD = 3;
@@ -16,41 +24,44 @@ export const THRESHOLD = 3;
 const messageLink = (msg: Message) =>
     `https://discord.com/channels/${msg.guildId}/${msg.channelId}/${msg.id}`;
 
-const boardEmbed = (msg: Message, count: number) => {
+const boardCard = (msg: Message, count: number) => {
     const content = msg.content?.trim();
-    const embed = new EmbedBuilder()
-        .setColor("Gold")
-        .setAuthor({
-            name: msg.author.username,
-            iconURL: msg.author.displayAvatarURL()
-        })
-        .setDescription(content ? content.slice(0, 3800) : "Original message")
-        .addFields({
-            name: "Stars",
-            value: String(count),
-            inline: false
-        })
-        .setFooter({
-            text: `#${
-                (msg.channel as TextChannel | undefined)?.name ?? "unknown"
-            } ${DOT} Starboard`,
-            iconURL: msg.author.displayAvatarURL()
-        })
-        .setTimestamp(msg.createdTimestamp);
+    const channelName =
+        (msg.channel as TextChannel | undefined)?.name ?? "unknown";
 
-    const image = msg.attachments.find((a) =>
-        a.contentType?.startsWith("image/")
-    );
-    if (image) embed.setImage(image.url);
-
-    const link = new ActionRowBuilder<ButtonBuilder>().setComponents(
-        new ButtonBuilder()
-            .setLabel("View message")
-            .setStyle(ButtonStyle.Link)
-            .setURL(messageLink(msg))
+    const container = card(
+        COLORS.gold,
+        section(
+            [
+                `## ⭐ ${count}`,
+                `-# #${channelName} ${DOT} ${msg.author.username}`
+            ],
+            thumb(
+                msg.author.displayAvatarURL({ size: 128 }),
+                msg.author.username
+            )
+        ),
+        divider(),
+        text(content ? content.slice(0, 3000) : "*Original message*")
     );
 
-    return { embed, link };
+    const images = msg.attachments
+        .filter(
+            (a) =>
+                a.contentType?.startsWith("image/") ||
+                isImageUrl(a.url)
+        )
+        .map((a) => a.url);
+
+    if (images.length)
+        add(container, divider(), gallery(images, "Starred attachment"));
+
+    add(
+        container,
+        actionRow(linkButton("View message", messageLink(msg)))
+    );
+
+    return container;
 };
 
 const starRow = (msg: Message, count: number, board: string | null) => ({
@@ -73,7 +84,7 @@ export const syncStar = async (msg: Message) => {
     ) as TextChannel | undefined;
 
     if (count >= THRESHOLD) {
-        const { embed, link } = boardEmbed(msg, count);
+        const container = boardCard(msg, count);
         if (existing?.board) {
             if (!channel) return;
             const boardMsg = await channel.messages
@@ -81,26 +92,24 @@ export const syncStar = async (msg: Message) => {
                 .catch(() => null);
             if (!boardMsg) {
                 const posted = await channel
-                    .send({ embeds: [embed], components: [link] })
+                    .send({ components: [container], flags: V2 })
                     .catch(() => null);
                 if (posted) await writeStar(starRow(msg, count, posted.id));
                 return;
             }
-            await boardMsg.edit({ embeds: [embed], components: [link] });
+            await editV2(boardMsg, [container]);
             await writeStar(starRow(msg, count, existing.board));
         } else {
             if (!channel) return;
             const posted = await channel
-                .send({ embeds: [embed], components: [link] })
+                .send({ components: [container], flags: V2 })
                 .catch(() => null);
             if (!posted) return;
             await writeStar(starRow(msg, count, posted.id));
         }
     } else if (existing) {
         if (existing.board && channel) {
-            await channel.messages
-                .delete(existing.board)
-                .catch(() => {});
+            await channel.messages.delete(existing.board).catch(() => {});
         }
         await deleteStar(msg.id);
     }

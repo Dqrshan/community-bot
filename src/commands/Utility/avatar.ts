@@ -1,14 +1,22 @@
 import {
-    ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
     ComponentType,
-    EmbedBuilder,
     Message,
     User
 } from "discord.js";
 import { Command } from "../../lib/command";
-import { errorEmbed } from "../../lib/response";
+import {
+    actionRow,
+    card,
+    COLORS,
+    divider,
+    gallery,
+    statusContainer,
+    text,
+    V2
+} from "../../lib/components";
+import { DOT } from "../../lib/response";
 
 const avatar: Command = {
     name: "avatar",
@@ -24,7 +32,13 @@ const avatar: Command = {
             user = await msg.client.users.fetch(args![0]).catch(() => null!);
             if (!user) {
                 return msg.reply({
-                    embeds: [errorEmbed("I couldn't find that user.")]
+                    components: [
+                        statusContainer(
+                            "error",
+                            "I couldn't find that user."
+                        )
+                    ],
+                    flags: V2
                 });
             }
         } else {
@@ -34,69 +48,59 @@ const avatar: Command = {
             ? await msg.guild.members.fetch({ user }).catch(() => null)
             : null;
 
-        const base = new EmbedBuilder()
-            .setTitle(`${user.displayName}`)
-            .setURL(`https://discord.com/users/${user.id}`)
-            .setColor(member ? member.displayHexColor : "#2F3136")
-            .setFooter({ text: user.id, iconURL: user.displayAvatarURL() });
+        const fetchedUser = await user.fetch();
+        const avatarUrl = user.displayAvatarURL({ size: 512 });
+        const bannerUrl = fetchedUser.bannerURL({ size: 512 });
+        const serverUrl = member?.avatarURL({ size: 512 }) ?? null;
 
-        const avatarView = EmbedBuilder.from(
-            base.setImage(user.avatarURL({ size: 512 })).toJSON()
-        );
-
-        (await user.fetch()).banner;
-        const bannerView = EmbedBuilder.from(base.toJSON());
-        if (user.banner) {
-            bannerView.setImage(user.bannerURL({ size: 512 })!);
-        }
-
-        const serverView = EmbedBuilder.from(base.toJSON());
-        if (member) {
-            (await member.fetch()).avatar;
-            if (member.avatar) {
-                serverView.setImage(member.avatarURL({ size: 512 }));
-            }
-        }
+        const accent =
+            member && member.displayHexColor !== "#000000"
+                ? parseInt(member.displayHexColor.slice(1), 16)
+                : COLORS.info;
 
         const views = [
-            { id: "_A", label: "Avatar", embed: avatarView, enabled: true },
-            {
-                id: "_B",
-                label: "Banner",
-                embed: bannerView,
-                enabled: Boolean(user.banner)
-            },
-            {
-                id: "_S",
-                label: "Server",
-                embed: serverView,
-                enabled: Boolean(member?.avatar)
-            }
-        ];
-        const active = views.filter((v) => v.enabled);
+            { label: "Avatar", url: avatarUrl },
+            { label: "Banner", url: bannerUrl },
+            { label: "Server", url: serverUrl }
+        ].filter((v): v is { label: string; url: string } => Boolean(v.url));
 
-        const row = new ActionRowBuilder<ButtonBuilder>();
-        let initial: Message;
+        const build = (active: number, disabled = false) => {
+            const container = card(
+                accent,
+                text(`## ${user.displayName}`),
+                text(`-# <@${user.id}> ${DOT} ${user.id}`),
+                divider(),
+                gallery([views[active].url], `${user.username} ${views[active].label}`)
+            );
 
-        if (active.length > 1) {
-            initial = await msg.reply({
-                components: [
-                    row.setComponents(
-                        active.map((v) =>
+            if (views.length > 1)
+                container.addActionRowComponents(
+                    actionRow(
+                        ...views.map((view, index) =>
                             new ButtonBuilder()
-                                .setLabel(v.label)
-                                .setCustomId(v.id)
-                                .setStyle(ButtonStyle.Secondary)
+                                .setLabel(view.label)
+                                .setCustomId(`av_${index}`)
+                                .setStyle(
+                                    index === active
+                                        ? ButtonStyle.Primary
+                                        : ButtonStyle.Secondary
+                                )
+                                .setDisabled(disabled)
                         )
                     )
-                ],
-                embeds: [avatarView]
-            });
-        } else {
-            initial = await msg.reply({ embeds: [avatarView] });
-            return;
-        }
+                );
 
+            return container;
+        };
+
+        const initial = await msg.reply({
+            components: [build(0)],
+            flags: V2
+        });
+
+        if (views.length <= 1) return;
+
+        let active = 0;
         const collector = initial.createMessageComponentCollector({
             componentType: ComponentType.Button,
             time: 60 * 1000,
@@ -105,26 +109,17 @@ const avatar: Command = {
 
         collector.on("collect", async (ctx) => {
             await ctx.deferUpdate().catch(() => {});
-            const view = active.find((v) => v.id === ctx.customId);
-            if (view) await initial.edit({ embeds: [view.embed] }).catch(() => {});
+            const index = parseInt(ctx.customId.replace("av_", ""));
+            if (!isNaN(index) && views[index]) active = index;
+            await initial
+                .edit({ components: [build(active)] })
+                .catch(() => {});
             collector.resetTimer();
         });
 
         collector.on("end", async () => {
             await initial
-                .edit({
-                    components: [
-                        row.setComponents(
-                            active.map((v) =>
-                                new ButtonBuilder()
-                                    .setLabel(v.label)
-                                    .setCustomId(v.id)
-                                    .setStyle(ButtonStyle.Secondary)
-                                    .setDisabled(true)
-                            )
-                        )
-                    ]
-                })
+                .edit({ components: [build(active, true)] })
                 .catch(() => {});
         });
     }

@@ -1,6 +1,14 @@
 import type { TextChannel } from "discord.js";
 import { AttachmentBuilder } from "discord.js";
 import { getClient } from "./db";
+import {
+    attachmentRow,
+    card,
+    COLORS,
+    divider,
+    text,
+    V2
+} from "./components";
 
 const TABLES = [
     "afk_data",
@@ -42,11 +50,25 @@ export const dumpDatabase = async (): Promise<string> => {
 
 export const backupToChannel = async (channel: TextChannel) => {
     const sql = await dumpDatabase();
+    const file = new AttachmentBuilder(Buffer.from(sql, "utf-8"), {
+        name: "turso-database-backup.sql"
+    });
+
     await channel.send({
-        files: [
-            new AttachmentBuilder(Buffer.from(sql, "utf-8"), {
-                name: "turso-database-backup.sql"
-            })
-        ]
+        components: [
+            card(
+                COLORS.info,
+                text("## Database backup"),
+                divider(),
+                text(
+                    `-# Turso snapshot ${new Date().toUTCString()} \u00b7 ${(
+                        Buffer.byteLength(sql) / 1024
+                    ).toFixed(1)} KB`
+                ),
+                attachmentRow(file.name ?? "turso-database-backup.sql")
+            )
+        ],
+        files: [file],
+        flags: V2
     });
 };

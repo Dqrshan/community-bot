@@ -3,42 +3,37 @@ import {
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
-	EmbedBuilder,
+	ContainerBuilder,
 	Message,
 	MessageFlags
-} from 'discord.js';
+} from "discord.js";
+import { V2, statusContainer } from "./components";
 
 export const Pagination = async (
 	message: Message,
-	content: string,
-	pages: EmbedBuilder[],
+	pages: ContainerBuilder[],
 	buttonList: ButtonBuilder[],
 	timeout: number = 60000
 ) => {
-	if (!pages) throw new Error('Pages are not given.');
-	if (!buttonList) throw new Error('Buttons are not given.');
+	if (!pages?.length) throw new Error("Pages are not given.");
+	if (!buttonList) throw new Error("Buttons are not given.");
 	if (
 		buttonList[0].data.style === ButtonStyle.Link ||
 		buttonList[1].data.style === ButtonStyle.Link
 	)
-		throw new Error('Link buttons are not supported');
-	if (buttonList.length !== 2) throw new Error('Need two buttons.');
+		throw new Error("Link buttons are not supported");
+	if (buttonList.length !== 2) throw new Error("Need two buttons.");
 
 	let page = 0;
 
 	const row = new ActionRowBuilder<ButtonBuilder>().addComponents(buttonList);
+	pages.forEach((container) => container.addActionRowComponents(row));
 
 	const curPage = await message.reply({
-		content,
-		embeds: [
-			pages[page].setFooter({
-				text: `Page ${page + 1} / ${pages.length}`,
-			}),
-		],
-		components: [row],
+		components: [pages[page]],
+		flags: V2
 	});
 
-	// @ts-ignore
 	const filter = async (i: any) => {
 		if (
 			(i.customId ===
@@ -51,19 +46,26 @@ export const Pagination = async (
 		)
 			return true;
 		else
-			i.reply({
-				flags: MessageFlags.Ephemeral,
-				content: 'This pagination is not for you!'
-			}).catch(() => {});
+			await i
+				.reply({
+					components: [
+						statusContainer(
+							"error",
+							"This pagination is not for you!"
+						)
+					],
+					flags: V2 | MessageFlags.Ephemeral
+				})
+				.catch(() => {});
 		return false;
 	};
 
 	const collector = await curPage.createMessageComponentCollector({
 		filter,
-		time: timeout,
+		time: timeout
 	});
 
-	collector.on('collect', async (i) => {
+	collector.on("collect", async (i) => {
 		switch (i.customId) {
 			case (buttonList[0].data as APIButtonComponentWithCustomId)
 				.custom_id:
@@ -77,32 +79,17 @@ export const Pagination = async (
 				break;
 		}
 		await i.deferUpdate();
-		await curPage.edit({
-			embeds: [
-				pages[page].setFooter({
-					text: `Page ${page + 1} / ${pages.length}`,
-				}),
-			],
-			components: [row],
-		});
+		await curPage.edit({ components: [pages[page]] });
 		collector.resetTimer();
 	});
 
-	collector.on('end', (_, reason) => {
-		if (reason !== 'messageDelete') {
-			const disabledRow =
-				new ActionRowBuilder<ButtonBuilder>().addComponents(
-					buttonList[0].setDisabled(true),
-					buttonList[1].setDisabled(true)
-				);
-			curPage.edit({
-				embeds: [
-					pages[page].setFooter({
-						text: `Page ${page + 1} / ${pages.length}`,
-					}),
-				],
-				components: [disabledRow],
-			});
+	collector.on("end", (_, reason) => {
+		if (reason !== "messageDelete") {
+			buttonList[0].setDisabled(true);
+			buttonList[1].setDisabled(true);
+			curPage
+				.edit({ components: [pages[page]] })
+				.catch(() => {});
 		}
 	});
 

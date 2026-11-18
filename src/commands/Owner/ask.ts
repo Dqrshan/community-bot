@@ -1,7 +1,16 @@
-import { EmbedBuilder, Message, TextChannel } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import { Command } from "../../lib/command";
+import {
+    card,
+    COLORS,
+    divider,
+    section,
+    statusContainer,
+    text,
+    thumb,
+    V2
+} from "../../lib/components";
 import { splitContent } from "../../lib/utils";
-import { errorEmbed } from "../../lib/response";
 import { ChatData } from "../../typings";
 
 const command: Command = {
@@ -11,17 +20,27 @@ const command: Command = {
     aliases: ["gpt", "ai"],
     messageRun: async (msg: Message, args) => {
         if (!args || !args.length) {
-            msg.reply({
-                embeds: [errorEmbed("Please provide a query to ask.")]
+            return msg.reply({
+                components: [
+                    statusContainer(
+                        "error",
+                        "Please provide a query to ask."
+                    )
+                ],
+                flags: V2
             });
-            return;
         }
 
         if (!process.env.AI_URL) {
-            msg.reply({
-                embeds: [errorEmbed("The AI endpoint is not configured.")]
+            return msg.reply({
+                components: [
+                    statusContainer(
+                        "error",
+                        "The AI endpoint is not configured."
+                    )
+                ],
+                flags: V2
             });
-            return;
         }
 
         const query = args.join(" ");
@@ -43,34 +62,62 @@ const command: Command = {
         });
         if (!res.ok) {
             return msg.reply({
-                embeds: [errorEmbed("The AI request failed.")]
+                components: [
+                    statusContainer("error", "The AI request failed.")
+                ],
+                flags: V2
             });
         }
         const data = (await res.json()) as ChatData;
 
-        if (data.response) {
-            const embed = new EmbedBuilder()
-                .setColor("Blurple")
-                .setAuthor({
-                    name: query.slice(0, 200),
-                    iconURL: msg.author.displayAvatarURL()
-                });
-            let r = data.response;
-            if (r.length > 3900) {
-                for (const str of splitContent(r, 3900)) {
-                    await (msg.channel as TextChannel)
-                        .send({ embeds: [embed.setDescription(str.slice(0, 4096))] })
-                        .catch(() => {});
-                }
-            } else {
-                await msg
-                    .reply({ embeds: [embed.setDescription(r)] })
-                    .catch(() => {});
-            }
-        } else {
-            await msg.reply({
-                embeds: [errorEmbed("The AI returned no response.")]
+        if (!data.response) {
+            return msg.reply({
+                components: [
+                    statusContainer(
+                        "error",
+                        "The AI returned no response."
+                    )
+                ],
+                flags: V2
             });
+        }
+
+        const chunks =
+            data.response.length > 3400
+                ? splitContent(data.response, 3400)
+                : [data.response];
+
+        for (const [i, chunk] of chunks.entries()) {
+            const container = card(
+                COLORS.info,
+                ...(i === 0
+                    ? [
+                          section(
+                              [
+                                  `## ${query.slice(0, 200)}`,
+                                  "-# Sudeep's response"
+                              ],
+                              thumb(
+                                  msg.client.user!.displayAvatarURL({
+                                      size: 128
+                                  }),
+                                  "Bot avatar"
+                              )
+                          ),
+                          divider()
+                      ]
+                    : [text(`-# Continued (${i + 1}/${chunks.length})`)]),
+                text(chunk)
+            );
+
+            if (i === 0)
+                await msg
+                    .reply({ components: [container], flags: V2 })
+                    .catch(() => {});
+            else
+                await (msg.channel as TextChannel)
+                    .send({ components: [container], flags: V2 })
+                    .catch(() => {});
         }
     }
 };

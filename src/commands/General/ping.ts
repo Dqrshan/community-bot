@@ -1,5 +1,15 @@
-import { EmbedBuilder, Message } from "discord.js";
+import { Message } from "discord.js";
 import type { Command } from "../../lib/command";
+import {
+    card,
+    COLORS,
+    divider,
+    section,
+    text,
+    thumb,
+    V2
+} from "../../lib/components";
+import { DOT } from "../../lib/response";
 
 const ping: Command = {
     name: "ping",
@@ -7,11 +17,10 @@ const ping: Command = {
     aliases: ["pong", "latency"],
     messageRun: async (msg: Message) => {
         const sent = await msg.reply({
-            embeds: [
-                new EmbedBuilder()
-                    .setColor("Blurple")
-                    .setDescription("Measuring latency...")
-            ]
+            components: [
+                card(COLORS.info, text("-# Measuring latency..."))
+            ],
+            flags: V2
         });
 
         const roundtrip = sent.createdTimestamp - msg.createdTimestamp;
@@ -20,38 +29,35 @@ const ping: Command = {
             (Date.now() - process.uptime() * 1000) / 1000
         );
 
-        const embed = new EmbedBuilder()
-            .setColor("Blurple")
-            .setAuthor({
-                name: "Pong",
-                iconURL: msg.client.user?.displayAvatarURL()
-            })
-            .addFields(
-                {
-                    name: "Roundtrip",
-                    value: `\`${roundtrip}ms\``,
-                    inline: true
-                },
-                {
-                    name: "Websocket",
-                    value: `\`${
+        const container = card(
+            COLORS.info,
+            section(
+                [
+                    "## Pong",
+                    "-# Live connection health of the bot"
+                ],
+                thumb(
+                    msg.client.user!.displayAvatarURL({ size: 128 }),
+                    "Bot avatar"
+                )
+            ),
+            divider(),
+            text(
+                `**Roundtrip** ${DOT} \`${roundtrip}ms\`\n` +
+                    `**Websocket** ${DOT} \`${
                         ws < 0 ? "measuring" : `${Math.round(ws)}ms`
-                    }\``,
-                    inline: true
-                },
-                {
-                    name: "Uptime",
-                    value: `<t:${uptime}:R>`,
-                    inline: true
-                }
+                    }\`\n` +
+                    `**Uptime** ${DOT} <t:${uptime}:R>`
+            ),
+            divider(),
+            text(
+                `-# Requested by ${msg.author.username} ${DOT} <t:${Math.round(
+                    Date.now() / 1000
+                )}:R>`
             )
-            .setFooter({
-                text: `Requested by ${msg.author.username}`,
-                iconURL: msg.author.displayAvatarURL()
-            })
-            .setTimestamp();
+        );
 
-        await sent.edit({ embeds: [embed] });
+        await sent.edit({ components: [container] });
     }
 };
 

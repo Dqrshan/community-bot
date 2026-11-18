@@ -1,6 +1,15 @@
-import { EmbedBuilder, Message } from "discord.js";
+import { Message } from "discord.js";
 import { Command } from "../../lib/command";
-import { errorEmbed, infoEmbed } from "../../lib/response";
+import {
+    card,
+    COLORS,
+    divider,
+    section,
+    statusContainer,
+    text,
+    thumb,
+    V2
+} from "../../lib/components";
 import { createAfk, findAfk } from "../../lib/db";
 
 const AFK: Command = {
@@ -14,20 +23,26 @@ const AFK: Command = {
 
         if (data) {
             return msg.reply({
-                embeds: [
-                    infoEmbed(
+                components: [
+                    statusContainer(
+                        "info",
                         "You are already AFK. Send a message to clear your status."
                     )
-                ]
+                ],
+                flags: V2
             });
         }
 
         let reason = args!.length ? args!.join(" ") : "AFK";
         if (reason.length > 500) {
             return msg.reply({
-                embeds: [
-                    errorEmbed("The reason cannot exceed 500 characters.")
-                ]
+                components: [
+                    statusContainer(
+                        "error",
+                        "The reason cannot exceed 500 characters."
+                    )
+                ],
+                flags: V2
             });
         }
         reason = reason
@@ -35,19 +50,24 @@ const AFK: Command = {
             .replaceAll(/@here/g, "here")
             .replaceAll(/@&/g, "");
 
-        const embed = new EmbedBuilder()
-            .setColor("Blurple")
-            .setAuthor({
-                name: `${msg.author.username} is now AFK`,
-                iconURL: msg.author.displayAvatarURL()
-            })
-            .setDescription(reason)
-            .setFooter({
-                text: "This clears automatically when you send a message"
-            })
-            .setTimestamp();
+        const container = card(
+            COLORS.info,
+            section(
+                [
+                    `## ${msg.author.username} is now AFK`,
+                    reason,
+                    `-# <t:${Math.round(Date.now() / 1000)}:f>`
+                ],
+                thumb(
+                    msg.author.displayAvatarURL({ size: 128 }),
+                    msg.author.username
+                )
+            ),
+            divider(),
+            text("-# This clears automatically when you send a message")
+        );
 
-        msg.reply({ embeds: [embed] });
+        msg.reply({ components: [container], flags: V2 });
 
         const name = msg.member?.displayName ?? msg.author.displayName;
         if (!name.startsWith("[AFK]"))

@@ -1,5 +1,5 @@
 import { Command } from "../../lib/command";
-import { errorEmbed, successEmbed } from "../../lib/response";
+import { replyError, replySuccess } from "../../lib/response";
 
 const usage = "Please reply to a message OR provide a message ID to pin.";
 
@@ -11,7 +11,7 @@ const pin: Command = {
     examples: ["1234567890", " "],
     messageRun: async (msg, args) => {
         if (!msg.reference && !args?.length) {
-            msg.reply({ embeds: [errorEmbed(usage)] });
+            replyError(msg, usage);
             return;
         }
 
@@ -19,23 +19,20 @@ const pin: Command = {
             ? await msg.fetchReference().catch(() => null)
             : await msg.channel.messages.fetch(args![0]).catch(() => null);
         if (!m) {
-            msg.reply({ embeds: [errorEmbed(usage)] });
+            replyError(msg, usage);
             return;
         }
 
         if ((await msg.channel.messages.fetchPinned()).size >= 50) {
-            msg.reply({
-                embeds: [
-                    errorEmbed("This channel has reached the pin limit of 50.")
-                ]
-            });
+            replyError(msg, "This channel has reached the pin limit of 50.");
             return;
         }
 
         await m.pin(`Pinned by @${msg.author.username}`).catch(() => {});
-        msg.reply({
-            embeds: [successEmbed(`Message pinned by ${msg.author}.`)]
-        });
+        replySuccess(
+            msg,
+            `[Message](${m.url}) pinned by ${msg.author}.`
+        );
     }
 };
 

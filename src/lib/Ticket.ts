@@ -8,7 +8,6 @@ import {
     ButtonStyle,
     ChannelType,
     Collection,
-    EmbedBuilder,
     GuildMember,
     MessageFlags,
     ModalBuilder,
@@ -24,6 +23,20 @@ import { setTicketCount, ticketCount } from "./db";
 import { links, staff, ticketCategory, ticketLogs } from "../config";
 import { createTranscript } from "discord-html-transcripts";
 import { sleep } from "./utils";
+import {
+    actionRow,
+    attachmentRow,
+    card,
+    COLORS,
+    divider,
+    linkButton,
+    section,
+    statusContainer,
+    text,
+    thumb,
+    V2
+} from "./components";
+import { DOT } from "./response";
 
 export default class Ticket {
     ticketNumber: number;
@@ -62,40 +75,37 @@ export default class Ticket {
     public async delete(member: GuildMember, note?: string) {
         await this.log(member);
 
-        const embed = new EmbedBuilder()
-            .setAuthor({
-                name: this.user.username,
-                iconURL: this.user.displayAvatarURL()
-            })
-            .setTitle(`Ticket Deleted - ${this.ticketNumber}`)
-            .setFields([
-                {
-                    name: "Created by",
-                    value: this.user.toString(),
-                    inline: true
-                },
-                {
-                    name: "Reason",
-                    value: this.reason,
-                    inline: true
-                },
-                {
-                    name: "Closed by",
-                    value: member.user.toString(),
-                    inline: true
-                }
-            ])
-            .setColor("Red")
-            .setFooter({
-                text: this.user.id
-            })
-            .setTimestamp();
+        const container = card(
+            COLORS.danger,
+            section(
+                [
+                    `## Ticket Deleted ${DOT} ${this.ticketNumber}`,
+                    `-# Closed by ${member.user.username}`
+                ],
+                thumb(
+                    this.user.displayAvatarURL({ size: 128 }),
+                    this.user.username
+                )
+            ),
+            divider(),
+            text(
+                `**Created by** ${DOT} ${this.user.toString()}\n` +
+                    `**Reason** ${DOT} ${this.reason}\n` +
+                    `**Closed by** ${DOT} ${member.user.toString()}` +
+                    (note ? `\n**Note** ${DOT} ${note}` : "")
+            ),
+            text(
+                `-# ${this.user.id} ${DOT} <t:${Math.round(
+                    Date.now() / 1000
+                )}:R>`
+            )
+        );
 
-        if (note) embed.addFields({ name: "Note", value: note, inline: true });
         (
             (await member.client.channels.cache.get(ticketLogs)) as TextChannel
         ).send({
-            embeds: [embed]
+            components: [container],
+            flags: V2
         });
 
         tickets.delete(this.user.id);
@@ -112,44 +122,40 @@ export default class Ticket {
 
         deleting = false;
 
-        const em = new EmbedBuilder()
-            .setTitle(`Transcript - ${this.ticketNumber}`)
-            .setColor("Blurple")
-            .setAuthor({
-                name: this.user.username,
-                iconURL: this.user.displayAvatarURL()
-            })
-            .setThumbnail(this.user.displayAvatarURL())
-            .setFooter({ text: this.user.id })
-            .setTimestamp()
-            .setFields([
-                {
-                    name: "Created By",
-                    value: this.user.toString(),
-                    inline: true
-                },
-                {
-                    name: "Reason",
-                    value: this.reason,
-                    inline: true
-                },
-                {
-                    name: "Closed By",
-                    value: member.user.toString(),
-                    inline: true
-                },
-                {
-                    name: "Total Messages",
-                    value: this.channel!.messages.cache.size.toLocaleString(),
-                    inline: true
-                }
-            ]);
+        const container = card(
+            COLORS.info,
+            section(
+                [
+                    `## Transcript ${DOT} ${this.ticketNumber}`,
+                    `-# ${this.user.username}`
+                ],
+                thumb(
+                    this.user.displayAvatarURL({ size: 128 }),
+                    this.user.username
+                )
+            ),
+            divider(),
+            text(
+                `**Created by** ${DOT} ${this.user.toString()}\n` +
+                    `**Reason** ${DOT} ${this.reason}\n` +
+                    `**Closed by** ${DOT} ${member.user.toString()}\n` +
+                    `**Total messages** ${DOT} ${this.channel!.messages.cache.size.toLocaleString()}`
+            ),
+            text(
+                `-# ${this.user.id} ${DOT} <t:${Math.round(
+                    Date.now() / 1000
+                )}:R>`
+            ),
+            divider(),
+            attachmentRow(transcript.name ?? "transcript.html")
+        );
 
         return await (
             member.client.channels.cache.get(ticketLogs) as TextChannel
         ).send({
-            embeds: [em],
-            files: [transcript]
+            components: [container],
+            files: [transcript],
+            flags: V2
         });
     }
 }
@@ -161,10 +167,15 @@ export const isDeleting = () => deleting;
 export const askReasonForTicket = (ctx: ButtonInteraction) => {
     if (tickets.has(ctx.user.id))
         return ctx.reply({
-            content: `You already have a ticket open: ${
-                tickets.get(ctx.user.id)!.channel
-            }`,
-            flags: MessageFlags.Ephemeral
+            components: [
+                statusContainer(
+                    "error",
+                    `You already have a ticket open: ${
+                        tickets.get(ctx.user.id)!.channel
+                    }`
+                )
+            ],
+            flags: V2 | MessageFlags.Ephemeral
         });
 
     const inputRow = new ActionRowBuilder<TextInputBuilder>().setComponents([
@@ -229,74 +240,75 @@ export const createTicket = async (
     })) as TextChannel;
     tickets.set(ticket.user.id, ticket);
 
-    const emb = new EmbedBuilder()
-        .setColor("Blurple")
-        .setAuthor({
-            name: ticket.user.username,
-            iconURL: ticket.user.avatarURL()!
-        })
-        .setDescription(
-            `> ・Explain your question in detail so that our staff can help you.\n> ・This ticket will automatically be deleted <t:${
+    const welcome = card(
+        COLORS.info,
+        section(
+            [
+                `## Ticket ${DOT} ${ticket.ticketNumber}`,
+                `Welcome ${ticket.user}, our ${staff
+                    .map((r) => `<@&${r}>`)
+                    .join(" ")} will be with you shortly.`,
+                `-# Opened by ${ticket.user.username}`
+            ],
+            thumb(
+                ticket.user.displayAvatarURL({ size: 128 }),
+                ticket.user.username
+            )
+        ),
+        divider(),
+        text(
+            `> Please explain your question in detail so that our staff can help you.\n> This ticket will automatically be deleted <t:${
                 Math.round(Date.now() / 1000) + 5 * 60
             }:R> if you don't reply.`
-        );
-
-    const btns = new ActionRowBuilder<ButtonBuilder>().setComponents(
-        new ButtonBuilder()
-            .setStyle(ButtonStyle.Danger)
-            .setLabel("Close")
-            .setCustomId("CLOSE"),
-        new ButtonBuilder()
-            .setStyle(ButtonStyle.Link)
-            .setURL(links.rules)
-            .setLabel("Rules"),
-        new ButtonBuilder()
-            .setStyle(ButtonStyle.Link)
-            .setURL(links.terms)
-            .setLabel("ToS")
+        ),
+        actionRow(
+            new ButtonBuilder()
+                .setStyle(ButtonStyle.Danger)
+                .setLabel("Close")
+                .setEmoji("🔒")
+                .setCustomId("CLOSE"),
+            linkButton("Rules", links.rules),
+            linkButton("ToS", links.terms)
+        )
     );
 
-    ticket.channel.send({
-        content: `Welcome ${
-            ticket.user
-        }, please wait patiently for our ${staff.map(
-            (r) => `<@&${r}>`
-        )} to reply!`,
-        embeds: [emb],
-        components: [btns]
-    });
+    ticket.channel.send({ components: [welcome], flags: V2 });
 
     interaction.reply({
-        content: ticket.channel.toString(),
-        flags: MessageFlags.Ephemeral
+        components: [
+            statusContainer("success", `Ticket created ${DOT} ${ticket.channel}`)
+        ],
+        flags: V2 | MessageFlags.Ephemeral
     });
 
-    const em = new EmbedBuilder()
-        .setAuthor({
-            name: ticket.user.username,
-            iconURL: ticket.user.displayAvatarURL()
-        })
-        .setThumbnail(ticket.user.displayAvatarURL())
-        .setTitle(`Ticket Opened - ${ticket.ticketNumber}`)
-        .setColor("Green")
-        .setFields(
-            {
-                name: "Created by",
-                value: ticket.user.toString(),
-                inline: true
-            },
-            {
-                name: "Reason",
-                value: ticket.reason,
-                inline: true
-            }
+    const opened = card(
+        COLORS.success,
+        section(
+            [
+                `## Ticket Opened ${DOT} ${ticket.ticketNumber}`,
+                `-# ${ticket.user.username}`
+            ],
+            thumb(
+                ticket.user.displayAvatarURL({ size: 128 }),
+                ticket.user.username
+            )
+        ),
+        divider(),
+        text(
+            `**Created by** ${DOT} ${ticket.user.toString()}\n**Reason** ${DOT} ${ticket.reason}`
+        ),
+        text(
+            `-# ${ticket.user.id} ${DOT} <t:${Math.round(
+                Date.now() / 1000
+            )}:R>`
         )
-        .setTimestamp();
+    );
 
     await (
         interaction.guild!.channels.cache.get(ticketLogs)! as TextChannel
     ).send({
-        embeds: [em]
+        components: [opened],
+        flags: V2
     });
 
     await sleep(5 * 60 * 1000);
@@ -318,13 +330,20 @@ export const createTicket = async (
 export const deleteTicket = (ctx: ButtonInteraction) => {
     if (isDeleting())
         return ctx.reply({
-            content:
-                "The bot is currently deleting another ticket, please wait.",
-            flags: MessageFlags.Ephemeral
+            components: [
+                statusContainer(
+                    "info",
+                    "The bot is currently deleting another ticket, please wait."
+                )
+            ],
+            flags: V2 | MessageFlags.Ephemeral
         });
     const ticket: Ticket = tickets.find(
         (t: Ticket) => t.channel?.id === ctx.channelId
     )!;
-    ctx.reply({ content: "Deleting ticket..", flags: MessageFlags.Ephemeral });
+    ctx.reply({
+        components: [statusContainer("info", "Deleting ticket..")],
+        flags: V2 | MessageFlags.Ephemeral
+    });
     return ticket.delete(ctx.member! as GuildMember);
 };

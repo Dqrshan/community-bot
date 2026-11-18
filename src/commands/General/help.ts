@@ -1,13 +1,19 @@
-import {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    EmbedBuilder,
-    GuildMember,
-    Message
-} from "discord.js";
+import { GuildMember, Message } from "discord.js";
 import { Command } from "../../lib/command";
-import { DOT, errorEmbed } from "../../lib/response";
+import {
+    actionRow,
+    add,
+    card,
+    COLORS,
+    divider,
+    linkButton,
+    section,
+    statusContainer,
+    text,
+    thumb,
+    V2
+} from "../../lib/components";
+import { DOT } from "../../lib/response";
 import { links, owners } from "../../config";
 
 const CATEGORIES: Record<string, string> = {
@@ -24,11 +30,16 @@ const help: Command = {
     usage: "[commandName]",
     examples: ["ping", "avatar", " "],
     messageRun: async (msg: Message, args) => {
-        const accent =
+        const accentHex =
             msg.member &&
             (msg.member as GuildMember).displayHexColor !== "#000000"
-                ? (msg.member as GuildMember).displayHexColor
-                : "Blurple";
+                ? parseInt(
+                      (msg.member as GuildMember).displayHexColor.slice(1),
+                      16
+                  )
+                : COLORS.info;
+
+        const bot = msg.client.user!;
 
         if (args?.length) {
             const query = args[0].toLowerCase();
@@ -39,56 +50,64 @@ const help: Command = {
                 );
             if (!command || command.category === "Owner") {
                 return msg.reply({
-                    embeds: [
-                        errorEmbed(
+                    components: [
+                        statusContainer(
+                            "error",
                             `I couldn't find a command called \`${query}\`.`
                         )
-                    ]
+                    ],
+                    flags: V2
                 });
             }
 
-            const embed = new EmbedBuilder()
-                .setColor(accent)
-                .setTitle(command.name)
-                .setDescription(command.description ?? "No description")
-                .addFields(
-                    {
-                        name: "Category",
-                        value: command.category!,
-                        inline: true
-                    },
-                    {
-                        name: "Aliases",
-                        value: command.aliases?.length
+            const container = card(
+                accentHex,
+                section(
+                    [
+                        `# ${command.name}`,
+                        command.description ?? "No description",
+                        `-# ${command.category}`
+                    ],
+                    thumb(bot.displayAvatarURL({ size: 128 }), "Bot avatar")
+                ),
+                divider(),
+                text(
+                    `**Aliases** ${DOT} ${
+                        command.aliases?.length
                             ? command.aliases
                                   .map((a) => `\`${a}\``)
                                   .join(` ${DOT} `)
-                            : "None",
-                        inline: true
-                    },
-                    {
-                        name: "Usage",
-                        value: `\`${msg.client.prefix}${command.name} ${command.usage ?? ""}\``,
-                        inline: false
-                    }
+                            : "None"
+                    }\n**Usage** ${DOT} \`${msg.client.prefix}${
+                        command.name
+                    } ${command.usage ?? ""}\``
                 )
-                .setFooter({
-                    text: `[] optional ${DOT} <> required`
-                });
+            );
 
             if (command.examples?.length) {
-                embed.addFields({
-                    name: "Examples",
-                    value: command.examples
-                        .map(
-                            (ex) =>
-                                `\`${msg.client.prefix}${command.name} ${ex.trim()}\``
-                        )
-                        .join("\n")
-                });
+                container.addTextDisplayComponents(
+                    text(
+                        `**Examples**\n${command.examples
+                            .map(
+                                (ex) =>
+                                    `\`${msg.client.prefix}${command.name} ${ex.trim()}\``
+                            )
+                            .join("\n")}`
+                    )
+                );
             }
 
-            await msg.reply({ embeds: [embed] }).catch(() => {});
+            add(
+                container,
+                divider(),
+                text(`-# [] optional ${DOT} <> required`),
+                actionRow(
+                    linkButton("Website", links.website),
+                    linkButton("Vote", links.topgg)
+                )
+            );
+
+            await msg.reply({ components: [container], flags: V2 }).catch(() => {});
             return;
         }
 
@@ -101,46 +120,46 @@ const help: Command = {
             )
         ];
 
-        const embed = new EmbedBuilder()
-            .setColor(accent)
-            .setAuthor({
-                name: `${msg.client.user?.username} Command List`,
-                iconURL: msg.client.user?.displayAvatarURL()
-            })
-            .setDescription(
-                `Use \`${msg.client.prefix}help <command>\` for details on a specific command.`
-            )
-            .addFields(
-                cats.map((dir) => {
-                    const commands = msg.client.commands.filter(
-                        (c) => c.category === dir
-                    );
-                    return {
-                        name: `${dir} ${DOT} ${commands.size}`,
-                        value: `${CATEGORIES[dir] ?? ""}\n${commands
-                            .map((x) => `\`${x.name}\``)
-                            .join(` ${DOT} `)}`,
-                        inline: false
-                    };
-                })
-            )
-            .setFooter({
-                text: `${msg.client.commands.size} commands ${DOT} ${msg.client.prefix}help`,
-                iconURL: msg.client.user?.displayAvatarURL()
-            });
-
-        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder()
-                .setLabel("Website")
-                .setStyle(ButtonStyle.Link)
-                .setURL(links.website),
-            new ButtonBuilder()
-                .setLabel("Vote")
-                .setStyle(ButtonStyle.Link)
-                .setURL(links.topgg)
+        const container = card(
+            accentHex,
+            section(
+                [
+                    `# ${bot.username} Command List`,
+                    `Use \`${msg.client.prefix}help <command>\` for details on a specific command.`,
+                    `-# ${msg.client.commands.size} commands`
+                ],
+                thumb(bot.displayAvatarURL({ size: 128 }), "Bot avatar")
+            ),
+            divider()
         );
 
-        await msg.reply({ embeds: [embed], components: [row] }).catch(() => {});
+        cats.forEach((dir, index) => {
+            const commands = msg.client.commands.filter(
+                (c) => c.category === dir
+            );
+            // The header already ends in a separator; skip a second one.
+            if (index > 0) add(container, divider());
+            add(
+                container,
+                text(
+                    `### ${dir} ${DOT} ${commands.size}\n${
+                        CATEGORIES[dir] ?? ""
+                    }\n${commands.map((x) => `\`${x.name}\``).join(` ${DOT} `)}`
+                )
+            );
+        });
+
+        add(
+            container,
+            divider(),
+            text(`-# ${msg.client.prefix}help <command> for more`),
+            actionRow(
+                linkButton("Website", links.website),
+                linkButton("Vote", links.topgg)
+            )
+        );
+
+        await msg.reply({ components: [container], flags: V2 }).catch(() => {});
     }
 };
 

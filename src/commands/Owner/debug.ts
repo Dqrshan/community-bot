@@ -1,5 +1,15 @@
 import { Command } from "../../lib/command";
-import { EmbedBuilder, Message, version } from "discord.js";
+import { Message, version } from "discord.js";
+import {
+    card,
+    COLORS,
+    divider,
+    section,
+    text,
+    thumb,
+    V2
+} from "../../lib/components";
+import { DOT } from "../../lib/response";
 
 const command: Command = {
     name: "debug",
@@ -11,67 +21,51 @@ const command: Command = {
         );
         const mem = process.memoryUsage();
 
-        const embed = new EmbedBuilder()
-            .setColor("Blurple")
-            .setTitle("Bot diagnostics")
-            .addFields(
-                {
-                    name: "Websocket",
-                    value: `\`${Math.round(msg.client.ws.ping)}ms\``,
-                    inline: true
-                },
-                {
-                    name: "Uptime",
-                    value: `<t:${uptime}:R>`,
-                    inline: true
-                },
-                {
-                    name: "Memory",
-                    value: `\`${(mem.heapUsed / 1024 / 1024).toFixed(1)} / ${(
-                        mem.heapTotal /
-                        1024 /
-                        1024
-                    ).toFixed(1)} MB\``,
-                    inline: true
-                },
-                {
-                    name: "Servers",
-                    value: `\`${msg.client.guilds.cache.size}\``,
-                    inline: true
-                },
-                {
-                    name: "Commands",
-                    value: `\`${msg.client.commands.size}\``,
-                    inline: true
-                },
-                {
-                    name: "Cached users",
-                    value: `\`${msg.client.users.cache.size.toLocaleString()}\``,
-                    inline: true
-                },
-                {
-                    name: "discord.js",
-                    value: `\`v${version}\``,
-                    inline: true
-                },
-                {
-                    name: "Node.js",
-                    value: `\`${process.version}\``,
-                    inline: true
-                },
-                {
-                    name: "Platform",
-                    value: `\`${process.platform} ${process.arch}\``,
-                    inline: true
-                }
+        const container = card(
+            COLORS.info,
+            section(
+                [
+                    "# Bot diagnostics",
+                    "-# Runtime and connection statistics"
+                ],
+                thumb(
+                    msg.client.user!.displayAvatarURL({ size: 128 }),
+                    "Bot avatar"
+                )
+            ),
+            divider(),
+            text(
+                `**Websocket** ${DOT} \`${Math.round(
+                    msg.client.ws.ping
+                )}ms\`\n` +
+                    `**Uptime** ${DOT} <t:${uptime}:R>\n` +
+                    `**Memory** ${DOT} \`${(mem.heapUsed / 1024 / 1024).toFixed(
+                        1
+                    )} / ${(mem.heapTotal / 1024 / 1024).toFixed(
+                        1
+                    )} MB\``
+            ),
+            divider(),
+            text(
+                `**Servers** ${DOT} \`${msg.client.guilds.cache.size}\`\n` +
+                    `**Commands** ${DOT} \`${msg.client.commands.size}\`\n` +
+                    `**Cached users** ${DOT} \`${msg.client.users.cache.size.toLocaleString()}\``
+            ),
+            divider(),
+            text(
+                `**discord.js** ${DOT} \`v${version}\`\n` +
+                    `**Node.js** ${DOT} \`${process.version}\`\n` +
+                    `**Platform** ${DOT} \`${process.platform} ${process.arch}\``
+            ),
+            divider(),
+            text(
+                `-# PID ${process.pid} ${DOT} <t:${Math.round(
+                    Date.now() / 1000
+                )}:R>`
             )
-            .setFooter({
-                text: `PID ${process.pid}`,
-                iconURL: msg.client.user?.displayAvatarURL()
-            })
-            .setTimestamp();
+        );
 
-        await msg.reply({ embeds: [embed] });
+        await msg.reply({ components: [container], flags: V2 });
     }
 };
 

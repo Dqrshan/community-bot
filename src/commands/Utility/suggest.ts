@@ -1,21 +1,14 @@
-import {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    EmbedBuilder,
-    Message,
-    TextChannel
-} from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import { Command } from "../../lib/command";
-import { DOT, errorEmbed, successEmbed } from "../../lib/response";
+import { statusContainer, V2 } from "../../lib/components";
+import { DOT } from "../../lib/response";
 import {
     insertSuggestion,
     nextSuggestionId,
     setSuggestionMessage
 } from "../../lib/db";
 import { suggestionsCh } from "../../config";
-
-const INDIGO = 0x4b0082;
+import { suggestionCard } from "../../lib/suggestionCard";
 
 const suggest: Command = {
     name: "suggest",
@@ -26,7 +19,13 @@ const suggest: Command = {
     messageRun: async (msg: Message, args?: string[]) => {
         if (!args?.length) {
             msg.reply({
-                embeds: [errorEmbed("Please provide your suggestion.")]
+                components: [
+                    statusContainer(
+                        "error",
+                        "Please provide your suggestion."
+                    )
+                ],
+                flags: V2
             });
             return;
         }
@@ -36,7 +35,13 @@ const suggest: Command = {
         ) as TextChannel | undefined;
         if (!channel) {
             msg.reply({
-                embeds: [errorEmbed("The suggestions channel is not configured.")]
+                components: [
+                    statusContainer(
+                        "error",
+                        "The suggestions channel is not configured."
+                    )
+                ],
+                flags: V2
             });
             return;
         }
@@ -51,54 +56,48 @@ const suggest: Command = {
             Date.now()
         );
 
-        const accent =
-            msg.guild?.members.me &&
-            msg.guild.members.me.displayHexColor !== "#000000"
-                ? msg.guild.members.me.displayHexColor
-                : INDIGO;
-
-        const embed = new EmbedBuilder()
-            .setColor(accent)
-            .setAuthor({
-                name: msg.author.username,
-                iconURL: msg.author.displayAvatarURL()
-            })
-            .setDescription(args.join(" "))
-            .addFields({
-                name: "Votes",
-                value: `Upvotes ${DOT} 0\nDownvotes ${DOT} 0`,
-                inline: false
-            })
-            .setFooter({ text: `Suggestion ${id}` })
-            .setTimestamp();
-
-        const row = new ActionRowBuilder<ButtonBuilder>().setComponents(
-            new ButtonBuilder()
-                .setLabel("Upvote")
-                .setCustomId(`su_${msg.guildId}_${id}`)
-                .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-                .setLabel("Downvote")
-                .setCustomId(`sd_${msg.guildId}_${id}`)
-                .setStyle(ButtonStyle.Danger)
-        );
-
         const posted = await channel
-            .send({ embeds: [embed], components: [row] })
+            .send({
+                components: [
+                    suggestionCard(
+                        {
+                            guild: msg.guildId!,
+                            id,
+                            user: msg.author.id,
+                            content: args.join(" "),
+                            status: "pending",
+                            reason: null,
+                            staff: null,
+                            timestamp: Date.now()
+                        },
+                        { up: 0, down: 0 }
+                    )
+                ],
+                flags: V2,
+                allowedMentions: { parse: [] }
+            })
             .catch(() => null);
 
         if (posted) {
             await setSuggestionMessage(msg.guildId!, id, posted.id);
             msg.reply({
-                embeds: [
-                        successEmbed(
-                            `Your suggestion was created in ${channel} ${DOT} Suggestion #${id}`
-                        )
-                ]
+                components: [
+                    statusContainer(
+                        "success",
+                        `Your suggestion was created in ${channel} ${DOT} Suggestion #${id}`
+                    )
+                ],
+                flags: V2
             });
         } else {
             msg.reply({
-                embeds: [errorEmbed("I couldn't post your suggestion.")]
+                components: [
+                    statusContainer(
+                        "error",
+                        "I couldn't post your suggestion."
+                    )
+                ],
+                flags: V2
             });
         }
     }

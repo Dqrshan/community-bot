@@ -1,5 +1,4 @@
 import {
-    EmbedBuilder,
     MessageFlags,
     TextChannel,
     type GuildMember,
@@ -7,7 +6,7 @@ import {
 } from "discord.js";
 import { gradeRoles, schoolRoles, suggestionsCh } from "../config";
 import { askReasonForTicket, createTicket, deleteTicket } from "../lib/Ticket";
-import { errorEmbed, infoEmbed, successEmbed } from "../lib/response";
+import { editV2, statusContainer, V2 } from "../lib/components";
 import {
     countVotes,
     findSuggestion,
@@ -15,7 +14,12 @@ import {
     removeVote,
     upsertVote
 } from "../lib/db";
-import { DOT } from "../lib/response";
+import { suggestionCard } from "../lib/suggestionCard";
+
+const ephemeral = (kind: "info" | "success" | "error", body: string) => ({
+    components: [statusContainer(kind, body)],
+    flags: V2 | MessageFlags.Ephemeral
+});
 
 export default async function run(ctx: Interaction) {
     if (ctx.user.bot || ctx.user.system || !ctx.guild) return;
@@ -48,9 +52,9 @@ export default async function run(ctx: Interaction) {
 
             const row = await findSuggestion(guildId, id);
             if (!row || row.status !== "pending") {
-                return ctx.editReply({
-                    embeds: [infoEmbed("This suggestion is no longer open for votes.")]
-                });
+                return ctx.editReply(
+                    ephemeral("info", "This suggestion is no longer open for votes.")
+                );
             }
 
             const current = await findVote(guildId, id, ctx.user.id);
@@ -69,17 +73,11 @@ export default async function run(ctx: Interaction) {
                     .fetch(row.message)
                     .catch(() => null);
                 if (posted) {
-                    const embed = EmbedBuilder.from(posted.embeds[0].data);
-                    const fields = (embed.data.fields ?? []).filter(
-                        (f) => f.name !== "Votes"
-                    );
-                    fields.push({
-                        name: "Votes",
-                        value: `Upvotes ${DOT} ${counts.up}\nDownvotes ${DOT} ${counts.down}`,
-                        inline: false
-                    });
-                    embed.setFields(fields);
-                    await posted.edit({ embeds: [embed] }).catch(() => {});
+                    await editV2(
+                        posted,
+                        [suggestionCard(row, counts)],
+                        { allowedMentions: { parse: [] } }
+                    ).catch(() => {});
                 }
             }
 
@@ -90,11 +88,13 @@ export default async function run(ctx: Interaction) {
                     ? "You upvoted this suggestion."
                     : "You downvoted this suggestion.";
 
-            return ctx.editReply({ embeds: [infoEmbed(reply)] });
+            return ctx.editReply(ephemeral("info", reply));
         } catch (error) {
             console.error(error);
             return ctx
-                .editReply({ embeds: [errorEmbed("The vote could not be counted.")] })
+                .editReply(
+                    ephemeral("error", "The vote could not be counted.")
+                )
                 .catch(() => {});
         }
     }
@@ -111,20 +111,20 @@ export default async function run(ctx: Interaction) {
             const id = ctx.customId.replace("a-", "").replace("p-", "");
             const role = ctx.guild.roles.cache.get(id);
             if (!role) {
-                return ctx.editReply({
-                    embeds: [errorEmbed("I couldn't find that role.")]
-                });
+                return ctx.editReply(
+                    ephemeral("error", "I couldn't find that role.")
+                );
             }
             if (member.roles.cache.has(role.id)) {
                 await member.roles.remove(role.id).catch(() => {});
-                return ctx.editReply({
-                    embeds: [infoEmbed(`Removed <@&${role.id}>`)]
-                });
+                return ctx.editReply(
+                    ephemeral("info", `Removed <@&${role.id}>`)
+                );
             }
             await member.roles.add(role.id).catch(() => {});
-            return ctx.editReply({
-                embeds: [successEmbed(`Added <@&${role.id}>`)]
-            });
+            return ctx.editReply(
+                ephemeral("success", `Added <@&${role.id}>`)
+            );
         }
 
         // grade roles (single choice)
@@ -136,26 +136,23 @@ export default async function run(ctx: Interaction) {
             const id = ctx.customId.replace("g-", "");
             const role = ctx.guild.roles.cache.get(id);
             if (!role) {
-                return ctx.editReply({
-                    embeds: [errorEmbed("I couldn't find that role.")]
-                });
+                return ctx.editReply(
+                    ephemeral("error", "I couldn't find that role.")
+                );
             }
             const grades = gradeRoles.map((d) => d.role);
-            if (
-                member.roles.cache.some((r) => grades.includes(r.id))
-            ) {
-                return ctx.editReply({
-                    embeds: [
-                        errorEmbed(
-                            "You already have a grade role. Open a ticket to have it changed."
-                        )
-                    ]
-                });
+            if (member.roles.cache.some((r) => grades.includes(r.id))) {
+                return ctx.editReply(
+                    ephemeral(
+                        "error",
+                        "You already have a grade role. Open a ticket to have it changed."
+                    )
+                );
             }
             await member.roles.add(role.id).catch(() => {});
-            return ctx.editReply({
-                embeds: [successEmbed(`Added <@&${role.id}>`)]
-            });
+            return ctx.editReply(
+                ephemeral("success", `Added <@&${role.id}>`)
+            );
         }
     }
 
@@ -170,16 +167,16 @@ export default async function run(ctx: Interaction) {
                 r.name.toLowerCase().includes("alumnus")
             )
         ) {
-            return ctx.editReply({
-                embeds: [errorEmbed("You cannot add a school role.")]
-            });
+            return ctx.editReply(
+                ephemeral("error", "You cannot add a school role.")
+            );
         }
         const [value] = ctx.values;
         const role = ctx.guild.roles.cache.get(value);
         if (!role) {
-            return ctx.editReply({
-                embeds: [errorEmbed("I couldn't find that role.")]
-            });
+            return ctx.editReply(
+                ephemeral("error", "I couldn't find that role.")
+            );
         }
 
         const current = member.roles.cache.find((r) =>
@@ -189,24 +186,23 @@ export default async function run(ctx: Interaction) {
         if (current) {
             if (current.id === role.id) {
                 await member.roles.remove(current.id).catch(() => {});
-                return ctx.editReply({
-                    embeds: [infoEmbed(`Removed <@&${current.id}>`)]
-                });
+                return ctx.editReply(
+                    ephemeral("info", `Removed <@&${current.id}>`)
+                );
             }
             await member.roles.remove(current.id).catch(() => {});
             await member.roles.add(role.id).catch(() => {});
-            return ctx.editReply({
-                embeds: [
-                    infoEmbed(
-                        `Removed <@&${current.id}>\nAdded <@&${role.id}>`
-                    )
-                ]
-            });
+            return ctx.editReply(
+                ephemeral(
+                    "info",
+                    `Removed <@&${current.id}>\nAdded <@&${role.id}>`
+                )
+            );
         }
 
         await member.roles.add(role.id).catch(() => {});
-        return ctx.editReply({
-            embeds: [successEmbed(`Added <@&${role.id}>`)]
-        });
+        return ctx.editReply(
+            ephemeral("success", `Added <@&${role.id}>`)
+        );
     }
 }

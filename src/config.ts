@@ -26,7 +26,7 @@ export const audit = "1023853598502826024";
 export const links = {
     rules: "https://discord.com/channels/1023702510730494012/1083272137021866045",
     links: "https://discord.com/channels/1023702510730494012/1075735310736035900/1075737922113908747",
-    website: "https://lorenz1.gitbook.io/bangalore-hub",
+    website: "https://blrhub.shipstatic.com/",
     topgg: "https://top.gg/servers/1023702510730494012/vote",
     terms: "https://lorenz1.gitbook.io/bangalore-hub/tc/terms"
 };
