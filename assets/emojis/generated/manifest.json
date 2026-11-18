@@ -1,0 +1,102 @@
+[
+  {
+    "name": "tick",
+    "icon": "Check",
+    "color": "#57F287"
+  },
+  {
+    "name": "cross",
+    "icon": "Close",
+    "color": "#ED4245"
+  },
+  {
+    "name": "warn",
+    "icon": "Exclamation",
+    "color": "#FEE75C"
+  },
+  {
+    "name": "info",
+    "icon": "Information",
+    "color": "#5865F2"
+  },
+  {
+    "name": "staff",
+    "icon": "ShieldStar",
+    "color": "#7C5CFC"
+  },
+  {
+    "name": "ticket",
+    "icon": "Ticket",
+    "color": "#9B59B6"
+  },
+  {
+    "name": "idea",
+    "icon": "Speech3",
+    "color": "#5865F2"
+  },
+  {
+    "name": "upvote",
+    "icon": "ThumbsUp",
+    "color": "#57F287"
+  },
+  {
+    "name": "downvote",
+    "icon": "ThumbsDown",
+    "color": "#ED4245"
+  },
+  {
+    "name": "star",
+    "icon": "Star",
+    "color": "#F1C40F"
+  },
+  {
+    "name": "pin",
+    "icon": "Pin",
+    "color": "#E67E22"
+  },
+  {
+    "name": "clock",
+    "icon": "Time",
+    "color": "#3498DB"
+  },
+  {
+    "name": "link",
+    "icon": "Link",
+    "color": "#1ABC9C"
+  },
+  {
+    "name": "announce",
+    "icon": "Announcement2",
+    "color": "#7289DA"
+  },
+  {
+    "name": "boost",
+    "icon": "Boost10",
+    "color": "#FF73FA"
+  },
+  {
+    "name": "gift",
+    "icon": "Gift",
+    "color": "#EB459E"
+  },
+  {
+    "name": "event",
+    "icon": "Event",
+    "color": "#B57BFF"
+  },
+  {
+    "name": "welcome",
+    "icon": "Sparkles",
+    "color": "#57F287"
+  },
+  {
+    "name": "rules",
+    "icon": "Shield2",
+    "color": "#7F8C8D"
+  },
+  {
+    "name": "trophy",
+    "icon": "Trophy",
+    "color": "#F1C40F"
+  }
+]

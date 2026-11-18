@@ -52,6 +52,26 @@ export type SuggestionRow = {
     timestamp: number;
 };
 
+export type PollRow = {
+    key: string;
+    guild: string;
+    channel: string;
+    message: string | null;
+    author: string;
+    question: string;
+    options: string;
+    timestamp: number;
+};
+
+export type ReminderRow = {
+    id: number;
+    guild: string;
+    channel: string;
+    user: string;
+    text: string;
+    remind_at: number;
+};
+
 export type StarRow = {
     message: string;
     guild: string;
@@ -135,6 +155,36 @@ export const ensureSchema = async () => {
             messages TEXT NOT NULL,
             timestamp INTEGER NOT NULL,
             PRIMARY KEY (guild, user)
+        )
+    `);
+    await db.execute(`
+        CREATE TABLE IF NOT EXISTS polls_data (
+            key TEXT PRIMARY KEY,
+            guild TEXT NOT NULL,
+            channel TEXT NOT NULL,
+            message TEXT,
+            author TEXT NOT NULL,
+            question TEXT NOT NULL,
+            options TEXT NOT NULL,
+            timestamp INTEGER NOT NULL
+        )
+    `);
+    await db.execute(`
+        CREATE TABLE IF NOT EXISTS poll_votes (
+            poll TEXT NOT NULL,
+            user TEXT NOT NULL,
+            option INTEGER NOT NULL,
+            PRIMARY KEY (poll, user)
+        )
+    `);
+    await db.execute(`
+        CREATE TABLE IF NOT EXISTS reminders_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            guild TEXT NOT NULL,
+            channel TEXT NOT NULL,
+            user TEXT NOT NULL,
+            text TEXT NOT NULL,
+            remind_at INTEGER NOT NULL
         )
     `);
 };
@@ -396,3 +446,118 @@ export const countVotes = async (guild: string, id: number) => {
     const row = rows<{ up: number; down: number }>(rs)[0];
     return { up: Number(row?.up ?? 0), down: Number(row?.down ?? 0) };
 };
+
+export const insertPoll = (
+    poll: Omit<PollRow, "message"> & { message?: string | null }
+) =>
+    getClient().then((db) =>
+        db.execute({
+            sql: `INSERT INTO polls_data (key, guild, channel, message, author, question, options, timestamp)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            args: [
+                poll.key,
+                poll.guild,
+                poll.channel,
+                poll.message ?? null,
+                poll.author,
+                poll.question,
+                poll.options,
+                poll.timestamp
+            ]
+        })
+    );
+
+export const setPollMessage = (key: string, message: string) =>
+    getClient().then((db) =>
+        db.execute({
+            sql: "UPDATE polls_data SET message = ? WHERE key = ?",
+            args: [message, key]
+        })
+    );
+
+export const findPoll = async (key: string) => {
+    const db = await getClient();
+    const rs = await db.execute({
+        sql: "SELECT * FROM polls_data WHERE key = ?",
+        args: [key]
+    });
+    return rows<PollRow>(rs)[0] ?? null;
+};
+
+export const findPollVote = async (poll: string, user: string) => {
+    const db = await getClient();
+    const rs = await db.execute({
+        sql: "SELECT option FROM poll_votes WHERE poll = ? AND user = ?",
+        args: [poll, user]
+    });
+    return rows<{ option: number }>(rs)[0]?.option ?? null;
+};
+
+export const setPollVote = (poll: string, user: string, option: number) =>
+    getClient().then((db) =>
+        db.execute({
+            sql: `INSERT INTO poll_votes (poll, user, option) VALUES (?, ?, ?)
+                  ON CONFLICT (poll, user) DO UPDATE SET option = excluded.option`,
+            args: [poll, user, option]
+        })
+    );
+
+export const removePollVote = (poll: string, user: string) =>
+    getClient().then((db) =>
+        db.execute({
+            sql: "DELETE FROM poll_votes WHERE poll = ? AND user = ?",
+            args: [poll, user]
+        })
+    );
+
+export const countPollVotes = async (poll: string, optionCount: number) => {
+    const db = await getClient();
+    const rs = await db.execute({
+        sql: `SELECT option, COUNT(*) AS count FROM poll_votes
+              WHERE poll = ? GROUP BY option`,
+        args: [poll]
+    });
+    const counts = new Array(optionCount).fill(0) as number[];
+    let voters = 0;
+    for (const row of rows<{ option: number; count: number }>(rs)) {
+        const index = Number(row.option);
+        const count = Number(row.count);
+        if (index >= 0 && index < optionCount) counts[index] = count;
+        voters += count;
+    }
+    return { counts, voters };
+};
+
+export const insertReminder = (
+    reminder: Omit<ReminderRow, "id">
+) =>
+    getClient().then((db) =>
+        db.execute({
+            sql: `INSERT INTO reminders_data (guild, channel, user, text, remind_at)
+                  VALUES (?, ?, ?, ?, ?)`,
+            args: [
+                reminder.guild,
+                reminder.channel,
+                reminder.user,
+                reminder.text,
+                reminder.remind_at
+            ]
+        })
+    );
+
+export const dueReminders = async (now: number) => {
+    const db = await getClient();
+    const rs = await db.execute({
+        sql: "SELECT * FROM reminders_data WHERE remind_at <= ? ORDER BY remind_at ASC LIMIT 25",
+        args: [now]
+    });
+    return rows<ReminderRow>(rs);
+};
+
+export const deleteReminder = (id: number) =>
+    getClient().then((db) =>
+        db.execute({
+            sql: "DELETE FROM reminders_data WHERE id = ?",
+            args: [id]
+        })
+    );

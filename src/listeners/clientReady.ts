@@ -9,6 +9,7 @@ import { databaseCh, guildId, ticketCategory } from "../config";
 import Snipes from "../lib/snipes";
 import Ticket, { tickets } from "../lib/Ticket";
 import { backupToChannel } from "../lib/backup";
+import { startReminders } from "../lib/reminders";
 
 export default async function run(client: Client) {
     // load snipes
@@ -68,4 +69,7 @@ export default async function run(client: Client) {
     } catch (error) {
         client.console.error(error);
     }
+
+    startReminders(client);
+    client.console.info("Reminder delivery started");
 }
