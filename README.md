@@ -46,7 +46,7 @@ npm run dev:start
 | `DISCORD_BOT_TOKEN`  | ➕       | Alternative name for the token (either works)     |
 | `TURSO_DATABASE_URL` | ✅       | `libsql://…` URL of your Turso database           |
 | `TURSO_AUTH_TOKEN`   | ✅       | Turso auth token                                  |
-| `AI_URL`             | ❌       | Endpoint powering the `ask` command & AI channel  |
+| `GROQ_API_KEY`       | ✅       | Groq API key powering the `ask` command & AI channel  |
 | `PORT`               | ❌       | Health/HTTP server port (default `8080`)          |
 
 ## Development

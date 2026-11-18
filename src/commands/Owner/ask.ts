@@ -10,8 +10,8 @@ import {
     thumb,
     V2
 } from "../../lib/components";
+import { askAI } from "../../lib/ai";
 import { splitContent } from "../../lib/utils";
-import { ChatData } from "../../typings";
 
 const command: Command = {
     name: "ask",
@@ -31,36 +31,14 @@ const command: Command = {
             });
         }
 
-        if (!process.env.AI_URL) {
-            return msg.reply({
-                components: [
-                    statusContainer(
-                        "error",
-                        "The AI endpoint is not configured."
-                    )
-                ],
-                flags: V2
-            });
-        }
-
         const query = args.join(" ");
         await (msg.channel as TextChannel).sendTyping();
 
-        const res = await fetch(process.env.AI_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                messages: [
-                    {
-                        role: "user",
-                        content: query
-                    }
-                ]
-            })
-        });
-        if (!res.ok) {
+        let response: string;
+        try {
+            response = await askAI(query);
+        } catch (error) {
+            msg.client.console.error(error);
             return msg.reply({
                 components: [
                     statusContainer("error", "The AI request failed.")
@@ -68,24 +46,11 @@ const command: Command = {
                 flags: V2
             });
         }
-        const data = (await res.json()) as ChatData;
-
-        if (!data.response) {
-            return msg.reply({
-                components: [
-                    statusContainer(
-                        "error",
-                        "The AI returned no response."
-                    )
-                ],
-                flags: V2
-            });
-        }
 
         const chunks =
-            data.response.length > 3400
-                ? splitContent(data.response, 3400)
-                : [data.response];
+            response.length > 3400
+                ? splitContent(response, 3400)
+                : [response];
 
         for (const [i, chunk] of chunks.entries()) {
             const container = card(

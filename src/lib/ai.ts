@@ -1,16 +1,10 @@
 import { getClient, rows } from "./db";
 
-const NVIDIA_ENDPOINT = "https://integrate.api.nvidia.com/v1/chat/completions";
+const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
+const GROQ_CHAT_URL = `${GROQ_BASE_URL}/chat/completions`;
+const MODEL = "allam-2-7b";
 const MAX_CONTEXT = 25;
-const MAX_OUTPUT_TOKENS = 400;
-
-const MODELS = [
-    "meta/llama-3.3-70b-instruct",
-    "nvidia/llama-3.1-nemotron-70b-instruct",
-    "qwen/qwen2.5-7b-instruct",
-    "mistralai/mixtral-8x7b-instruct-v0.1",
-    "mistralai/mistral-7b-instruct-v0.3"
-];
+const MAX_OUTPUT_TOKENS = 120;
 
 const SYSTEM_PROMPT = `You are Sudeep, from Malleshwaram, Bangalore. You are a member of the Bangalore Hub Discord server and you chat with its members every day.
 
@@ -19,9 +13,19 @@ Personality:
 - Use natural Bangalore slang: macha, guru, scene, sakkath, full tight, solpa, enjoy maadi, try maatri, ayta, bidu, galata, kemcho, bombe, maja aahe
 - Friendly with everyone who talks to you, regulars and newcomers alike
 
+Limits:
+- Keep every reply short: 1-3 short sentences, simple conversation only
+- Long, detailed or lecture-style answers are not wanted
+- No emojis, no bullet lists, no markdown, no roleplay actions
+
+Server knowledge (share only when relevant, and keep it brief):
+- Want to know more about the server? Head over to <#1075735310736035900>
+- Need to reach staff about an inquiry? Open a ticket at <#1031159883673911336>
+- Want to suggest a feature? Use the "+suggest" command in <#1513518749356003479>
+- Want a message highlighted on starboard? It is at <#1031246196565614633> and needs 3+ star reactions
+
 Rules:
-- Reply as Sudeep himself in casual chat style, 1-3 short sentences
-- No emojis, no bullet lists, no lecture-style answers, no roleplay actions
+- Reply as Sudeep himself in casual chat style
 - No profanity, no offensive content, nothing NSFW
 - If asked who you are, you are Sudeep from Malleshwaram
 - Stay in character as Sudeep at all times`;
@@ -77,15 +81,17 @@ export const pushContext = async (
     });
 };
 
-const callNim = async (messages: unknown[], model: string) => {
-    const res = await fetch(NVIDIA_ENDPOINT, {
+const callGroq = async (messages: unknown[]) => {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) throw new Error("GROQ_API_KEY is not configured");
+    const res = await fetch(GROQ_CHAT_URL, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`
+            Authorization: `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-            model,
+            model: MODEL,
             messages,
             temperature: 0.7,
             top_p: 0.9,
@@ -93,12 +99,12 @@ const callNim = async (messages: unknown[], model: string) => {
             stream: false
         })
     });
-    if (!res.ok) throw new Error(`NIM ${res.status}`);
+    if (!res.ok) throw new Error(`Groq ${res.status}`);
     const data = (await res.json()) as {
         choices?: [{ message?: { content?: string } }];
     };
     const text = data.choices?.[0]?.message?.content;
-    if (!text) throw new Error("NIM empty response");
+    if (!text) throw new Error("Groq empty response");
     return text.trim();
 };
 
@@ -115,16 +121,14 @@ export const chatAsSudeep = async (
         { role: "user", name, content: prompt }
     ];
 
-    let lastError: unknown = null;
-    for (const model of MODELS) {
-        try {
-            const reply = await callNim(messages, model);
-            await pushContext(guild, user, name, prompt, reply);
-            return reply;
-        } catch (error) {
-            lastError = error;
-            console.error(`NIM model ${model} failed`, String(error));
-        }
-    }
-    throw lastError ?? new Error("All NIM models failed");
+    const reply = await callGroq(messages);
+    await pushContext(guild, user, name, prompt, reply);
+    return reply;
+};
+
+export const askAI = async (prompt: string) => {
+    return callGroq([
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: prompt }
+    ]);
 };

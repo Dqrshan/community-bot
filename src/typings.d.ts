@@ -9,10 +9,9 @@ declare global {
         interface ProcessEnv {
             DISCORD_TOKEN?: string;
             DISCORD_BOT_TOKEN?: string;
-            AI_URL?: string;
+            GROQ_API_KEY?: string;
             TURSO_DATABASE_URL?: string;
             TURSO_AUTH_TOKEN?: string;
-            NVIDIA_API_KEY?: string;
         }
     }
 }
@@ -30,8 +29,4 @@ export type Mention = {
     member: string;
     timestamp: number;
     message: string;
-};
-
-export type ChatData = {
-    response: string | null | undefined;
 };
