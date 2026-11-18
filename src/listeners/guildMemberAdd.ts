@@ -43,7 +43,7 @@ export default async function run(member: GuildMember) {
             section(
                 [
                     `## ${emoji("welcome")} Welcome, ${member.displayName}!`,
-                    `-# ${member.user.username} ${DOT} Member #${guild.memberCount}`
+                    `-# ${member.user.toString()} ${DOT} Member #${guild.memberCount}`
                 ],
                 thumb(member.displayAvatarURL({ size: 256 }), member.displayName)
             ),

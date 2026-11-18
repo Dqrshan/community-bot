@@ -20,7 +20,7 @@ import {
 export const V2 = MessageFlags.IsComponentsV2;
 
 export const COLORS = {
-    info: 0x5865f2,
+    info: 0xddc5f5,
     success: 0x57f287,
     danger: 0xed4245,
     warning: 0xfee75c,
