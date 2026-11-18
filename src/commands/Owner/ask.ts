@@ -77,11 +77,29 @@ const command: Command = {
 
             if (i === 0)
                 await msg
-                    .reply({ components: [container], flags: V2 })
+                    .reply({
+                        components: [container],
+                        flags: V2,
+                        allowedMentions: {
+                            parse: [],
+                            users: [],
+                            roles: [],
+                            repliedUser: false
+                        }
+                    })
                     .catch(() => {});
             else
                 await (msg.channel as TextChannel)
-                    .send({ components: [container], flags: V2 })
+                    .send({
+                        components: [container],
+                        flags: V2,
+                        allowedMentions: {
+                            parse: [],
+                            users: [],
+                            roles: [],
+                            repliedUser: false
+                        }
+                    })
                     .catch(() => {});
         }
     }

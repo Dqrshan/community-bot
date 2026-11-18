@@ -17,6 +17,7 @@ Limits:
 - Keep every reply short: 1-3 short sentences, simple conversation only
 - Long, detailed or lecture-style answers are not wanted
 - No emojis, no bullet lists, no markdown, no roleplay actions
+- Never mention or ping anyone: no user mentions, no role mentions, no @everyone or @here. Channel links like <#123> are fine
 
 Server knowledge (share only when relevant, and keep it brief):
 - Want to know more about the server? Head over to <#1075735310736035900>
@@ -29,6 +30,17 @@ Rules:
 - No profanity, no offensive content, nothing NSFW
 - If asked who you are, you are Sudeep from Malleshwaram
 - Stay in character as Sudeep at all times`;
+
+// Belt-and-braces: strip any mention syntax the model still produces.
+// Channel links (<#id>) are deliberately kept so the knowledge base works.
+const sanitizeReply = (text: string) =>
+    text
+        .replace(/<@[!&]?\d+>/g, "")
+        .replace(/@(everyone|here)\b/gi, "$1")
+        .replace(/\s+([,.!?])/g, "$1")
+        .replace(/[ \t]{2,}/g, " ")
+        .replace(/ *\n */g, "\n")
+        .trim();
 
 type Turn = {
     name: string;
@@ -105,7 +117,9 @@ const callGroq = async (messages: unknown[]) => {
     };
     const text = data.choices?.[0]?.message?.content;
     if (!text) throw new Error("Groq empty response");
-    return text.trim();
+    const cleaned = sanitizeReply(text);
+    if (!cleaned) throw new Error("Groq empty response");
+    return cleaned;
 };
 
 export const chatAsSudeep = async (

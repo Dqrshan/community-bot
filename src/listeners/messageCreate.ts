@@ -275,7 +275,12 @@ export default async function run(msg: Message) {
             await msg
                 .reply({
                     content: reply,
-                    allowedMentions: { repliedUser: true }
+                    allowedMentions: {
+                        parse: [],
+                        users: [],
+                        roles: [],
+                        repliedUser: false
+                    }
                 })
                 .catch(() => {});
         } catch (error) {
